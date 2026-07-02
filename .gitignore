@@ -1,0 +1,28 @@
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+node_modules/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.cache/
+dist/
+build/
+
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Visual Studio
+.vs/
+
+# Claude Code 本地个人设置（不进版本库）
+.claude/settings.local.json
+
+# Claude Code 交接快照（临时过程文件，不进版本库）
+.claude/handoff/

@@ -1,8 +1,8 @@
 {
-  "name": "constitution",
-  "version": "0.1.0",
-  "description": "跨 agent 全局规则总纲 constitution：开场把规则注入 Claude Code / codex / opencode 并全程遵守",
-  "main": ".opencode/plugins/constitution.mjs",
+  "name": "superagents",
+  "version": "0.2.0",
+  "description": "跨 agent 规则与配套 skill 容器：开场把规则总纲 constitution 注入 Claude Code / codex / opencode 并全程遵守",
+  "main": ".opencode/plugins/superagents.mjs",
   "private": true,
   "homepage": "https://github.com/buyi1net/superagents",
   "repository": "https://github.com/buyi1net/superagents"

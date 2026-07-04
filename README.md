@@ -1,10 +1,10 @@
 # superagents
 
-跨 agent 全局规则总纲 **constitution** —— 一份规则,装到 Claude Code / codex / opencode 三家,每个会话开场自动生效。
+跨 agent 的规则与 skill 容器 **superagents** —— 核心是规则总纲 skill **constitution**,装到 Claude Code / codex / opencode 三家,每个会话开场自动注入并全程生效;以后可往里扩展更多配套 skill。
 
 ## 这是什么
 
-`constitution` 是一份「规则总纲」(语言规范、交流规范、工作纪律、流程规范、开发规范),打包成一个跨 agent 的 plugin。装上后,三家 agent 在新会话开场就把总纲拉进上下文,让 agent 全程按规则办事,不用每次手动提醒。
+`superagents` 是一个跨 agent 的 plugin(容器),里头装规则和配套 skill。核心 skill `constitution` 是一份「规则总纲」(语言规范、交流规范、工作纪律、流程规范、开发规范);装上后三家 agent 在新会话开场就把总纲拉进上下文、全程按规则办事,不用每次手动提醒。以后可往 `skills/` 里加更多配套 skill,跟 constitution 并列。
 
 ## 三家的注入方式
 
@@ -20,7 +20,7 @@
 superagents/
 ├── .claude-plugin/       # CC 的 plugin + marketplace 清单
 ├── .codex-plugin/        # codex 的 plugin 清单
-├── .opencode/plugins/    # opencode 插件(constitution.mjs)
+├── .opencode/plugins/    # opencode 插件(superagents.mjs)
 ├── .agents/plugins/      # 通用 marketplace 清单(codex 用)
 ├── hooks/                # CC 的 SessionStart hook(run-hook.cmd + session-start)
 ├── skills/constitution/  # 总纲正文 SKILL.md + modules/
@@ -50,14 +50,14 @@ node scripts/install.mjs                 # 装三家
 ```bash
 # Claude Code
 claude plugin marketplace add buyi1net/superagents --sparse .claude-plugin hooks skills
-claude plugin install constitution@superagents
+claude plugin install superagents@superagents-dz
 
 # codex
 codex plugin marketplace add buyi1net/superagents
-codex plugin add constitution@superagents
+codex plugin add superagents@superagents-dz
 
 # opencode:编辑 ~/.config/opencode/opencode.json,在 plugin 数组加一行:
-#   "constitution@git+https://github.com/buyi1net/superagents.git"
+#   "superagents@git+https://github.com/buyi1net/superagents.git"
 ```
 
 ## 卸载

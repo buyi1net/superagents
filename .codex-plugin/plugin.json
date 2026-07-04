@@ -1,6 +1,6 @@
 {
-  "name": "constitution",
-  "version": "0.1.0",
+  "name": "superagents",
+  "version": "0.2.0",
   "description": "跨 agent 全局规则总纲，开场自动注入并全程遵守",
   "author": { "name": "buyi1net" },
   "homepage": "https://github.com/buyi1net/superagents",
@@ -10,7 +10,7 @@
   "skills": "./skills/",
   "hooks": {},
   "interface": {
-    "displayName": "Constitution",
+    "displayName": "Superagents",
     "shortDescription": "跨 agent 全局规则总纲",
     "longDescription": "开场把语言、交流、工作纪律、流程、开发规范的总纲注入上下文并全程遵守。codex 的 hook 走全局 ~/.codex/hooks.json（plugin 只提供 skill）。",
     "developerName": "buyi1net",

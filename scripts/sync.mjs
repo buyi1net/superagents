@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * sync.mjs —— 本机开发用:把本仓库的 constitution 正稿一键刷到本机已装的三家 plugin。
+ * sync.mjs —— 本机开发用:把本仓库的 superagents 插件正稿一键刷到本机已装的三家 plugin。
  *
  * 跟 install.mjs 的分工:
  *   - install.mjs 管「从 github 装」(换机 / 发布)
@@ -17,12 +17,12 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..');            // scripts/ 的上级 = 仓库根
 const HOME = os.homedir();
-const MARKET = 'superagents', PLUGIN = 'constitution';
+const MARKET = 'superagents-dz', PLUGIN = 'superagents';
 
 // 正稿源
 const SRC_SKILL = path.join(REPO, 'skills', 'constitution');
 const SRC_HOOKS = path.join(REPO, 'hooks');
-const SRC_OCPLUGIN = path.join(REPO, '.opencode', 'plugins', 'constitution.mjs');
+const SRC_OCPLUGIN = path.join(REPO, '.opencode', 'plugins', 'superagents.mjs');
 
 const log = (m) => console.log(m);
 const exists = (p) => fs.existsSync(p);
@@ -44,7 +44,7 @@ function findCache(base) {
   return subs.length ? path.join(dir, subs.sort().pop()) : null;
 }
 
-// opencode 包缓存路径较深,递归找含 package.json + .opencode 的 constitution 包根
+// opencode 包缓存路径较深,递归找含 package.json + .opencode 的 superagents 包根
 function findOpencodePkg() {
   const base = path.join(HOME, '.cache', 'opencode', 'packages');
   if (!exists(base)) return null;
@@ -87,13 +87,13 @@ function syncOpencode() {
   if (!pkg) { log('  未装/未拉包,跳过'); return; }
   mirror(SRC_SKILL, path.join(pkg, 'skills', 'constitution'));
   fs.mkdirSync(path.join(pkg, '.opencode', 'plugins'), { recursive: true });
-  fs.cpSync(SRC_OCPLUGIN, path.join(pkg, '.opencode', 'plugins', 'constitution.mjs'));
+  fs.cpSync(SRC_OCPLUGIN, path.join(pkg, '.opencode', 'plugins', 'superagents.mjs'));
   log(`  ✓ skills + 插件已同步`);
 }
 
 const args = process.argv.slice(2);
 const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));
-log(`constitution 本机同步  (源: ${REPO})`);
+log(`superagents 本机同步  (源: ${REPO})`);
 if (all || args.includes('--cc')) syncCC();
 if (all || args.includes('--codex')) syncCodex();
 if (all || args.includes('--opencode')) syncOpencode();

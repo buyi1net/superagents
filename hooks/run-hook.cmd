@@ -1,6 +1,6 @@
 : << 'CMDBLOCK'
 @echo off
-REM Cross-platform polyglot wrapper for constitution hook scripts.
+REM Cross-platform polyglot wrapper for superagents hook scripts.
 REM On Windows: cmd.exe runs the batch portion, which finds and calls bash.
 REM On Unix: the shell interprets this as a script (: is a no-op in bash).
 REM

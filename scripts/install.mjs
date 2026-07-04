@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * constitution 跨 agent 一键安装器（跨平台：Windows / macOS / Linux）
+ * superagents 跨 agent 一键安装器（跨平台：Windows / macOS / Linux）
  *
- * 把 constitution 规则总纲 plugin 装到 Claude Code / codex / opencode，并保证
+ * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / codex / opencode，并保证
  * 每家装完的 cache 都干净（不含别家清单、docs、.claude 这些杂物）。
  * github 仓库保持全量，干净靠两条路：
  *   - CC   ：marketplace add --sparse，装时只拉自己的目录
@@ -22,8 +22,8 @@ import path from 'node:path';
 
 const REPO = 'buyi1net/superagents';
 const GIT_URL = 'https://github.com/buyi1net/superagents.git';
-const MARKET = 'superagents';
-const PLUGIN = 'constitution';
+const MARKET = 'superagents-dz';
+const PLUGIN = 'superagents';
 const HOME = os.homedir();
 const isWin = os.platform() === 'win32';
 
@@ -60,6 +60,19 @@ function findPluginCache(base) {
   return subs.length ? path.join(dir, subs.sort().pop()) : null;
 }
 
+// 装新删老：同插件下只留 mtime 最新的版本目录，其余删掉（不依赖版本号解析，稳）
+function pruneOldVersions(base) {
+  const dir = path.join(base, MARKET, PLUGIN);
+  if (!fs.existsSync(dir)) return [];
+  const subs = fs.readdirSync(dir)
+    .map(d => path.join(dir, d))
+    .filter(p => { try { return fs.statSync(p).isDirectory(); } catch { return false; } })
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  const removed = [];
+  for (const p of subs.slice(1)) { fs.rmSync(p, { recursive: true, force: true }); removed.push(path.basename(p)); }
+  return removed;
+}
+
 // ---------- Claude Code ----------
 function installCC() {
   log('\n=== Claude Code ===');
@@ -67,9 +80,11 @@ function installCC() {
   tryQuiet(`claude plugin marketplace remove ${MARKET}`);           // 幂等：先清旧的
   shLoud(`claude plugin marketplace add ${REPO} --sparse ${CC_SPARSE.join(' ')}`);
   shLoud(`claude plugin install ${PLUGIN}@${MARKET}`);
-  const cache = findPluginCache(path.join(HOME, '.claude', 'plugins', 'cache'));
+  const ccBase = path.join(HOME, '.claude', 'plugins', 'cache');
+  const cache = findPluginCache(ccBase);
   const rm = cleanCache(cache, CC_JUNK);                            // 顺手剔掉根文件残留
-  log(`  ✓ CC 装好${rm.length ? '（清理：' + rm.join(', ') + '）' : ''}；plugin 自带 hooks.json，新会话自动注入`);
+  const pruned = pruneOldVersions(ccBase);                          // 删老版本目录，只留刚装的
+  log(`  ✓ CC 装好${rm.length ? '（清理：' + rm.join(', ') + '）' : ''}${pruned.length ? '（删老版本：' + pruned.join(', ') + '）' : ''}；plugin 自带 hooks.json，新会话自动注入`);
 }
 
 // ---------- codex ----------
@@ -79,11 +94,13 @@ function installCodex() {
   tryQuiet(`codex plugin marketplace remove ${MARKET}`);            // 幂等
   shLoud(`codex plugin marketplace add ${REPO}`);                   // 整仓（不能 sparse）
   shLoud(`codex plugin add ${PLUGIN}@${MARKET}`);
-  const cache = findPluginCache(path.join(HOME, '.codex', 'plugins', 'cache'));
+  const cxBase = path.join(HOME, '.codex', 'plugins', 'cache');
+  const cache = findPluginCache(cxBase);
   if (!cache) { log('  ✗ 没找到 codex plugin cache'); return; }
   const rm = cleanCache(cache, CODEX_JUNK);                         // 装完删杂物
+  const pruned = pruneOldVersions(cxBase);                          // 删老版本目录，只留刚装的
   cleanCodexHook();                                                 // 走 skill 引用，清掉之前配过的 hook
-  log(`  ✓ codex 装好并清理（${rm.join(', ')}）；走 skill 引用：开场露 description、按需调用加载全文`);
+  log(`  ✓ codex 装好并清理（${rm.join(', ')}${pruned.length ? '；删老版本：' + pruned.join(', ') : ''}）；走 skill 引用：开场露 description、按需调用加载全文`);
 }
 
 // codex 走 skill 引用、不用 hook（exec 不触发 SessionStart、交互全靠模型自觉调）：
@@ -152,7 +169,7 @@ function uninstallAll() {
 const args = process.argv.slice(2);
 if (args.includes('--uninstall')) { uninstallAll(); log('\n完成。'); process.exit(0); }
 const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));
-log(`constitution 跨 agent 安装器  (平台: ${os.platform()})`);
+log(`superagents 跨 agent 安装器  (平台: ${os.platform()})`);
 if (all || args.includes('--cc'))       { try { installCC(); }       catch (e) { log('  CC 出错: ' + e.message); } }
 if (all || args.includes('--codex'))    { try { installCodex(); }    catch (e) { log('  codex 出错: ' + e.message); } }
 if (all || args.includes('--opencode')) { try { installOpencode(); } catch (e) { log('  opencode 出错: ' + e.message); } }

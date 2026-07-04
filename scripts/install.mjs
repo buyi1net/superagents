@@ -79,7 +79,7 @@ function installCC() {
   log('\n=== Claude Code ===');
   if (!has('claude')) { log('  跳过：未找到 claude CLI'); return; }
   tryQuiet(`claude plugin marketplace remove ${MARKET}`);           // 幂等：先清旧的
-  shLoud(`claude plugin marketplace add ${REPO} --sparse ${CC_SPARSE.join(' ')}`);
+  shLoud(`claude plugin marketplace add ${GIT_URL} --sparse ${CC_SPARSE.join(' ')}`);   // 用完整 HTTPS URL：短格式在某些机器会被 claude 当 SSH 解析、新机器缺 host key/key 会失败
   shLoud(`claude plugin install ${PLUGIN}@${MARKET}`);
   const ccBase = path.join(HOME, '.claude', 'plugins', 'cache');
   const cache = findPluginCache(ccBase);

@@ -17,8 +17,7 @@ superagents/
 │   ├── ThirdParty/            # 第三方参考 skill 归档
 │   ├── docs/                  # 研究材料（调研 / 学习 / 分析报告）
 │   ├── handoff/               # agent 工作交接快照
-│   ├── settings.local.json
-│   └── skills/                # 项目级 skill（如 sync-skills）
+│   └── settings.local.json
 ├── .claude-plugin/            # Claude Code 的 plugin + marketplace 清单
 │   ├── marketplace.json
 │   └── plugin.json
@@ -51,7 +50,7 @@ superagents/
 
 处理本项目文件时，按本文档中的纪律和质量标准执行。新建 skill 时逐条检查质量清单。不确定是否应该新建 skill 时，先确认痛点是否是重复模式。
 
-把 skill 下发到各 agent（Claude Code / OpenCode / Codex）做测试，用项目级 skill `.claude/skills/sync-skills/`：开局不必加载；当用户说“下发”“同步到 agent”“清理备份”时，主动加载它并按其中说明执行，其余时间不碰。
+开发时改了 `skills/constitution/` 正稿、想同步到本机三家 agent 测试，跑 `node scripts/sync.mjs`——刷到各家 plugin cache、免重装立即生效（详见 README「本机开发同步」）。别再往各 agent 的独立 skill 目录下发：那套老机制（sync-skills）已废弃，会跟 plugin cache 里同一份 skill 撞车、制造 duplicate。
 
 ## 规则书写纲领
 

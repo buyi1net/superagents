@@ -88,7 +88,15 @@ function syncOpencode() {
   mirror(SRC_SKILL, path.join(pkg, 'skills', 'constitution'));
   fs.mkdirSync(path.join(pkg, '.opencode', 'plugins'), { recursive: true });
   fs.cpSync(SRC_OCPLUGIN, path.join(pkg, '.opencode', 'plugins', 'superagents.mjs'));
-  log(`  ✓ skills + 插件已同步`);
+  // 顺手按白名单清包内杂物（跟 clean-opencode.mjs 一致：opencode 只加载这三样）
+  const OC_KEEP = ['package.json', '.opencode', 'skills'];
+  const cleaned = [];
+  for (const name of fs.readdirSync(pkg)) {
+    if (OC_KEEP.includes(name)) continue;
+    fs.rmSync(path.join(pkg, name), { recursive: true, force: true });
+    cleaned.push(name);
+  }
+  log(`  ✓ skills + 插件已同步${cleaned.length ? `；清掉 ${cleaned.length} 项杂物` : ''}`);
 }
 
 const args = process.argv.slice(2);

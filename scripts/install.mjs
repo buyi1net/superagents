@@ -133,7 +133,7 @@ function installOpencode() {
   if (!cfg.plugin.some(p => typeof p === 'string' && p.startsWith(`${PLUGIN}@git+`))) cfg.plugin.push(spec);
   fs.writeFileSync(ocJson, JSON.stringify(cfg, null, 2));           // 保留原有配置（含 key）
   log('  ✓ 已把 plugin 写进 opencode.json（保留你原有配置）');
-  log('  注：opencode 只能整仓拉，杂物会在缓存里但不加载、不影响功能');
+  log('  ⚠ opencode 首次运行时才拉包（整仓、带杂物）。用一次后跑清理：node scripts/clean-opencode.mjs');
 }
 
 // ---------- 卸载 ----------

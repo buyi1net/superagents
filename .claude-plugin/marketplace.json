@@ -1,0 +1,14 @@
+{
+  "name": "superagents",
+  "description": "buyi1net 的跨 agent 规则与工作流市场",
+  "owner": { "name": "buyi1net" },
+  "plugins": [
+    {
+      "name": "constitution",
+      "description": "跨 agent 全局规则总纲，开场自动注入并全程遵守",
+      "version": "0.1.0",
+      "source": "./",
+      "author": { "name": "buyi1net" }
+    }
+  ]
+}

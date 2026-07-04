@@ -1,0 +1,10 @@
+{
+  "name": "constitution",
+  "description": "跨 agent 全局规则总纲：语言、交流、工作纪律、流程、开发规范，开场自动注入并全程遵守",
+  "version": "0.1.0",
+  "author": { "name": "buyi1net" },
+  "homepage": "https://github.com/buyi1net/superagents",
+  "repository": "https://github.com/buyi1net/superagents",
+  "license": "MIT",
+  "keywords": ["rules", "constitution", "workflow", "agent", "zh-cn"]
+}

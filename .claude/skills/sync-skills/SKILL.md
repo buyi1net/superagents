@@ -17,9 +17,9 @@ description: 把项目 skills/ 下的正稿 skill 下发到 Claude Code、openco
 ## 怎么运行
 
 ```bash
-node ~/Documents/SuperSkill/.claude/skills/sync-skills/sync.js            # 下发全部
-node ~/Documents/SuperSkill/.claude/skills/sync-skills/sync.js dz-skills  # 只下发指定的
-node ~/Documents/SuperSkill/.claude/skills/sync-skills/sync.js --clean    # 只清理过期备份
+node D:/superagents/.claude/skills/sync-skills/sync.js            # 下发全部
+node D:/superagents/.claude/skills/sync-skills/sync.js dz-skills  # 只下发指定的
+node D:/superagents/.claude/skills/sync-skills/sync.js --clean    # 只清理过期备份
 ```
 
 路径按当前系统自动选,配置在 sync.js 的 `TARGETS_BY_PLATFORM`。

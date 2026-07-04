@@ -15,6 +15,7 @@ superagents/
 │       └── marketplace.json   # 通用 marketplace 清单（Codex 用）
 ├── .claude/                   # 本仓库开发用的 Claude Code 配置（不打进 plugin）
 │   ├── ThirdParty/            # 第三方参考 skill 归档
+│   ├── docs/                  # 研究材料（调研 / 学习 / 分析报告）
 │   ├── handoff/               # agent 工作交接快照
 │   ├── settings.local.json
 │   └── skills/                # 项目级 skill（如 sync-skills）
@@ -31,7 +32,6 @@ superagents/
 ├── AGENTS.md                  # agent 项目规则（本文件；CLAUDE.md 指向它）
 ├── CLAUDE.md                  # Claude Code 入口，内容就是 "AGENTS.md"
 ├── README.md                  # 安装 / 使用说明（面向装本插件的人和 agent）
-├── docs/                      # 项目分析、学习、调研报告
 ├── hooks/                     # Claude Code 的 SessionStart hook
 │   ├── hooks.json             # hook 声明
 │   ├── run-hook.cmd           # 跨平台入口（Windows 走 cmd、unix 走 bash）
@@ -52,3 +52,21 @@ superagents/
 处理本项目文件时，按本文档中的纪律和质量标准执行。新建 skill 时逐条检查质量清单。不确定是否应该新建 skill 时，先确认痛点是否是重复模式。
 
 把 skill 下发到各 agent（Claude Code / OpenCode / Codex）做测试，用项目级 skill `.claude/skills/sync-skills/`：开局不必加载；当用户说“下发”“同步到 agent”“清理备份”时，主动加载它并按其中说明执行，其余时间不碰。
+
+## 规则书写纲领
+
+> 写、改本项目规则（constitution 及各 modules）时遵守。面向"写规则的人"：你，以及帮你写规则的 agent。
+
+1. **用户水平不预设**：别把用户焊死成"资深"或"小白"。按他对当前话题的熟悉度调深浅，拿不准偏讲透，看反馈收。
+
+2. **读者是陌生弱 agent**：每条都站在"没见过你、可能很弱的 agent 第一次冷读"的立场写，意思自足、用词规范，不靠只有作者懂的梗和上下文。
+
+3. **判据优先于清单**：能给"怎么判断"就别列"逐项枚举"。判据兜得住没列到的，清单挂一漏万、弱模型还爱对着勾。清单只在"漏一项就出安全或正确事故"时才留，且必配"拿不准从严"。
+
+4. **精炼是为读懂，不是为短**：删废话因为它碍读；删到费解、砍掉必要的解释和连接，是另一种坏。标准是"一遍读懂"，不是字数。
+
+5. **红线单列、口气要硬**：安全、自造词、敏感信息这类，单独成条、用"禁止 / 必须"，不许混进普通条目被降级。
+
+6. **正面判据加示范，胜过堆禁令**：禁令禁不完，一个判据配一两个"改前 / 改后"能覆盖一片。多写"该怎样"，少堆"别怎样"。
+
+7. **以身作则**：规则文本自己得守自己的规矩，说别用破折号断句就不用，说别堆清单就别列，说精炼自己别啰嗦。改完回读自查，防机械替换出岔子。

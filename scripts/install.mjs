@@ -29,9 +29,9 @@ const isWin = os.platform() === 'win32';
 
 // CC sparse 只拉这几个目录（.claude-plugin 里同时含 marketplace.json + plugin.json）
 const CC_SPARSE = ['.claude-plugin', 'hooks', 'skills'];
-// post-clean 各家 cache 里要删掉的杂物（黑名单，只删明确的，不碰 hooks/skills/自己清单/内部标记）
-const CC_JUNK = ['.codex-plugin', '.opencode', '.agents', 'docs', '.claude', '.git', 'AGENTS.md', 'CLAUDE.md', 'package.json'];
-const CODEX_JUNK = ['.claude-plugin', '.opencode', '.agents', 'docs', '.claude', '.git', 'AGENTS.md', 'CLAUDE.md', 'package.json', 'hooks'];
+// post-clean 白名单：各家 cache 只保留这些，其余（仓库杂物 + 别家清单）一律删——比黑名单稳，仓库以后加新根文件也不漏
+const CC_KEEP = ['.claude-plugin', 'hooks', 'skills', '.in_use'];   // .in_use 是 CC 装插件的内部标记
+const CODEX_KEEP = ['.codex-plugin', 'skills'];
 
 const log = (m) => console.log(m);
 const sh = (cmd) => execSync(cmd, { stdio: 'pipe', encoding: 'utf8' });
@@ -39,13 +39,14 @@ const shLoud = (cmd) => { log('  $ ' + cmd); return execSync(cmd, { stdio: 'inhe
 const tryQuiet = (cmd) => { try { sh(cmd); return true; } catch { return false; } };
 const has = (bin) => { try { sh(isWin ? `where ${bin}` : `command -v ${bin}`); return true; } catch { return false; } };
 
-// 删 cache 里指定的杂物（不存在就跳过）
-function cleanCache(cacheDir, junkList) {
+// 白名单清理：cache 目录下只留 keepList 里的，其余全删（仓库杂物、别家清单一律清掉）
+function keepOnly(cacheDir, keepList) {
   if (!cacheDir || !fs.existsSync(cacheDir)) return [];
   const removed = [];
-  for (const name of junkList) {
-    const p = path.join(cacheDir, name);
-    if (fs.existsSync(p)) { fs.rmSync(p, { recursive: true, force: true }); removed.push(name); }
+  for (const name of fs.readdirSync(cacheDir)) {
+    if (keepList.includes(name)) continue;
+    fs.rmSync(path.join(cacheDir, name), { recursive: true, force: true });
+    removed.push(name);
   }
   return removed;
 }
@@ -82,7 +83,7 @@ function installCC() {
   shLoud(`claude plugin install ${PLUGIN}@${MARKET}`);
   const ccBase = path.join(HOME, '.claude', 'plugins', 'cache');
   const cache = findPluginCache(ccBase);
-  const rm = cleanCache(cache, CC_JUNK);                            // 顺手剔掉根文件残留
+  const rm = keepOnly(cache, CC_KEEP);                              // 白名单清理：只留自己需要的
   const pruned = pruneOldVersions(ccBase);                          // 删老版本目录，只留刚装的
   log(`  ✓ CC 装好${rm.length ? '（清理：' + rm.join(', ') + '）' : ''}${pruned.length ? '（删老版本：' + pruned.join(', ') + '）' : ''}；plugin 自带 hooks.json，新会话自动注入`);
 }
@@ -97,7 +98,7 @@ function installCodex() {
   const cxBase = path.join(HOME, '.codex', 'plugins', 'cache');
   const cache = findPluginCache(cxBase);
   if (!cache) { log('  ✗ 没找到 codex plugin cache'); return; }
-  const rm = cleanCache(cache, CODEX_JUNK);                         // 装完删杂物
+  const rm = keepOnly(cache, CODEX_KEEP);                           // 白名单清理：只留自己需要的
   const pruned = pruneOldVersions(cxBase);                          // 删老版本目录，只留刚装的
   cleanCodexHook();                                                 // 走 skill 引用，清掉之前配过的 hook
   log(`  ✓ codex 装好并清理（${rm.join(', ')}${pruned.length ? '；删老版本：' + pruned.join(', ') : ''}）；走 skill 引用：开场露 description、按需调用加载全文`);

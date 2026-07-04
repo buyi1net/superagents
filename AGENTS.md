@@ -10,19 +10,41 @@
 
 ```text
 superagents/
-├── .claude/               # Claude Code 本仓库配置
-│   ├── ThirdParty/        # 第三方参考 skill 归档（写作 / 开发 / 搜索 / 进化 / 其它等）
-│   ├── handoff/           # agent 工作交接快照
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json   # 通用 marketplace 清单（Codex 用）
+├── .claude/                   # 本仓库开发用的 Claude Code 配置（不打进 plugin）
+│   ├── ThirdParty/            # 第三方参考 skill 归档
+│   ├── handoff/               # agent 工作交接快照
 │   ├── settings.local.json
-│   └── skills/            # Claude Code 项目级 skill（如 sync-skills）
-├── .gitattributes         # git 属性配置
+│   └── skills/                # 项目级 skill（如 sync-skills）
+├── .claude-plugin/            # Claude Code 的 plugin + marketplace 清单
+│   ├── marketplace.json
+│   └── plugin.json
+├── .codex-plugin/             # Codex 的 plugin 清单
+│   └── plugin.json
+├── .gitattributes
 ├── .gitignore
-├── AGENTS.md              # agent 项目规则（本文件；CLAUDE.md 指向它）
-├── CLAUDE.md              # Claude Code 入口，内容就是 "AGENTS.md"
-├── docs/                  # 项目分析、学习、调研报告
-└── skills/                # 正式 skill 正稿库（跨 agent，下发源）
-    └── core/              # 核心工作流
-        └── dz-skills/     # 跨 agent 全局规则总纲（SKILL.md + modules/）
+├── .opencode/                 # OpenCode 插件
+│   └── plugins/
+│       └── superagents.mjs    # 开场注入总纲的插件入口（package.json main 指向它）
+├── AGENTS.md                  # agent 项目规则（本文件；CLAUDE.md 指向它）
+├── CLAUDE.md                  # Claude Code 入口，内容就是 "AGENTS.md"
+├── README.md                  # 安装 / 使用说明（面向装本插件的人和 agent）
+├── docs/                      # 项目分析、学习、调研报告
+├── hooks/                     # Claude Code 的 SessionStart hook
+│   ├── hooks.json             # hook 声明
+│   ├── run-hook.cmd           # 跨平台入口（Windows 走 cmd、unix 走 bash）
+│   └── session-start          # 读 SKILL.md、拼注入 JSON
+├── package.json               # OpenCode 插件入口（main 字段）
+├── scripts/                   # 安装 / 同步脚本
+│   ├── clean-opencode.mjs     # 清 OpenCode 缓存杂物
+│   ├── install.mjs            # 从 github 装三家
+│   └── sync.mjs               # 本机改了正稿一键刷到三家
+└── skills/                    # 正式 skill 正稿库（跨 agent，打包 / 下发源）
+    └── constitution/          # 跨 agent 全局规则总纲
+        ├── SKILL.md           # 总纲正文
+        └── modules/           # 分场景规范（开发 / grill / 交接 / 网络 / 写作等）
 ```
 
 ## 给 agent

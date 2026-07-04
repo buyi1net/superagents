@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 /**
- * sync.mjs —— 本机开发用:把本仓库的 superagents 插件正稿一键刷到本机已装的三家 plugin。
+ * sync.mjs —— 本机开发用:把本仓库的 superagents 插件正稿一键刷到本机已装的 Claude Code + OpenCode。
+ *
+ * 只刷这两家、不含 codex:codex 认 github,会话启动时会从 github 重拉、盖掉本地刷进去的改动
+ * (实测,详见 .claude/docs/插件化机制-流程与踩坑.md),对它本地 sync 是无用功。codex 要更新走
+ * install.mjs(从 github 拉)。
  *
  * 跟 install.mjs 的分工:
- *   - install.mjs 管「从 github 装」(换机 / 发布)
- *   - sync.mjs    管「本机改了正稿、一键刷到本机已装的三家」(开发迭代,不经 github)
+ *   - install.mjs 管「从 github 装 / 更新」(换机 / 发布 / 更新三家,codex 也靠它)
+ *   - sync.mjs    管「本机改了正稿、一键刷到本机 Claude Code + OpenCode」(开发迭代,不经 github)
  *
  * 做法:直接覆盖各家 cache 里的内容文件,秒级生效,免去 marketplace 重装。
- * 用法:node scripts/sync.mjs [--cc|--codex|--opencode]   (不带参数=同步三家)
+ * 用法:node scripts/sync.mjs [--cc|--opencode]   (不带参数=同步这两家)
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -73,14 +77,6 @@ function syncCC() {
   log(`  ✓ skills + hooks 已同步`);
 }
 
-function syncCodex() {
-  log('Codex:');
-  const cache = findCache(path.join(HOME, '.codex', 'plugins', 'cache'));
-  if (!cache) { log('  未装,跳过'); return; }
-  mirror(SRC_SKILL, path.join(cache, 'skills', 'constitution'));   // 走引用,只需 skill
-  log(`  ✓ skills 已同步`);
-}
-
 function syncOpencode() {
   log('OpenCode:');
   const pkg = findOpencodePkg();
@@ -100,9 +96,9 @@ function syncOpencode() {
 }
 
 const args = process.argv.slice(2);
-const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));
+const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));   // --codex 也算显式指定，避免单跑 --codex 时误判成"无参全刷"
 log(`superagents 本机同步  (源: ${REPO})`);
+if (args.includes('--codex')) log('Codex:\n  跳过——codex 认 github,本地 sync 会被会话启动重拉覆盖;要更新 codex 跑 node scripts/install.mjs');
 if (all || args.includes('--cc')) syncCC();
-if (all || args.includes('--codex')) syncCodex();
 if (all || args.includes('--opencode')) syncOpencode();
 log('完成。');

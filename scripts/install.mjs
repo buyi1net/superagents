@@ -138,7 +138,22 @@ function installOpencode() {
   if (!cfg.plugin.some(p => typeof p === 'string' && p.startsWith(`${PLUGIN}@git+`))) cfg.plugin.push(spec);
   fs.writeFileSync(ocJson, JSON.stringify(cfg, null, 2));           // 保留原有配置（含 key）
   log('  ✓ 已把 plugin 写进 opencode.json（保留你原有配置）');
-  log('  ⚠ OpenCode 首次运行时才拉包（整仓、带杂物）。用一次后跑清理：node scripts/clean-opencode.mjs');
+  // 更新场景：bun 把 git 依赖缓存钉在旧 commit，不删缓存包 opencode 只会用旧版。
+  // 删掉旧缓存包，opencode 下次运行会从 github 重新拉最新。
+  const removed = rmOpencodeCache();
+  if (removed) log(`  ✓ 已清 opencode 旧缓存包（${removed}）；下次运行 opencode 会从 github 重拉最新，之后跑 node scripts/clean-opencode.mjs 清杂物`);
+  else log('  ⚠ OpenCode 首次运行时才拉包（整仓、带杂物）。用一次后跑清理：node scripts/clean-opencode.mjs');
+}
+
+// 删 opencode 缓存包（整个 superagents@git... 目录），让 opencode 下次运行从 github 重拉最新。
+// 更新时必需：bun 缓存钉版本，不删旧包就一直用旧 commit。
+function rmOpencodeCache() {
+  const base = path.join(HOME, '.cache', 'opencode', 'packages');
+  if (!fs.existsSync(base)) return null;
+  const pkgs = fs.readdirSync(base).filter(d => d.startsWith(`${PLUGIN}@git`));
+  if (!pkgs.length) return null;
+  for (const p of pkgs) fs.rmSync(path.join(base, p), { recursive: true, force: true });
+  return pkgs.join(', ');
 }
 
 // ---------- 卸载 ----------

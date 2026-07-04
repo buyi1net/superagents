@@ -6,7 +6,7 @@
  * 靠 import.meta 相对定位 plugin 内的 SKILL.md,不写死绝对路径 —— 换机随 plugin 走。
  *
  * 只负责"注入总纲",不注册 skills.paths(skill 发现交给 codex-plugin 的 skills 声明 /
- * opencode 原生目录),避免和别处重复触发 duplicate skill 警告。
+ * OpenCode 原生目录),避免和别处重复触发 duplicate skill 警告。
  */
 import path from 'path';
 import fs from 'fs';

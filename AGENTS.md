@@ -29,4 +29,4 @@ superagents/
 
 处理本项目文件时，按本文档中的纪律和质量标准执行。新建 skill 时逐条检查质量清单。不确定是否应该新建 skill 时，先确认痛点是否是重复模式。
 
-把 skill 下发到各 agent（Claude Code / opencode / codex）做测试，用项目级 skill `.claude/skills/sync-skills/`：开局不必加载；当用户说“下发”“同步到 agent”“清理备份”时，主动加载它并按其中说明执行，其余时间不碰。
+把 skill 下发到各 agent（Claude Code / OpenCode / Codex）做测试，用项目级 skill `.claude/skills/sync-skills/`：开局不必加载；当用户说“下发”“同步到 agent”“清理备份”时，主动加载它并按其中说明执行，其余时间不碰。

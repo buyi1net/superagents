@@ -44,7 +44,7 @@ function findCache(base) {
   return subs.length ? path.join(dir, subs.sort().pop()) : null;
 }
 
-// opencode 包缓存路径较深,递归找含 package.json + .opencode 的 superagents 包根
+// OpenCode 包缓存路径较深,递归找含 package.json + .opencode 的 superagents 包根
 function findOpencodePkg() {
   const base = path.join(HOME, '.cache', 'opencode', 'packages');
   if (!exists(base)) return null;
@@ -74,7 +74,7 @@ function syncCC() {
 }
 
 function syncCodex() {
-  log('codex:');
+  log('Codex:');
   const cache = findCache(path.join(HOME, '.codex', 'plugins', 'cache'));
   if (!cache) { log('  未装,跳过'); return; }
   mirror(SRC_SKILL, path.join(cache, 'skills', 'constitution'));   // 走引用,只需 skill
@@ -82,13 +82,13 @@ function syncCodex() {
 }
 
 function syncOpencode() {
-  log('opencode:');
+  log('OpenCode:');
   const pkg = findOpencodePkg();
   if (!pkg) { log('  未装/未拉包,跳过'); return; }
   mirror(SRC_SKILL, path.join(pkg, 'skills', 'constitution'));
   fs.mkdirSync(path.join(pkg, '.opencode', 'plugins'), { recursive: true });
   fs.cpSync(SRC_OCPLUGIN, path.join(pkg, '.opencode', 'plugins', 'superagents.mjs'));
-  // 顺手按白名单清包内杂物（跟 clean-opencode.mjs 一致：opencode 只加载这三样）
+  // 顺手按白名单清包内杂物（跟 clean-opencode.mjs 一致：OpenCode 只加载这三样）
   const OC_KEEP = ['package.json', '.opencode', 'skills'];
   const cleaned = [];
   for (const name of fs.readdirSync(pkg)) {

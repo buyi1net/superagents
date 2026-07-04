@@ -65,11 +65,11 @@ function findOpencodePkg() {
 }
 
 function syncCC() {
-  log('CC:');
+  log('Claude Code:');
   const cache = findCache(path.join(HOME, '.claude', 'plugins', 'cache'));
   if (!cache) { log('  未装,跳过'); return; }
   mirror(SRC_SKILL, path.join(cache, 'skills', 'constitution'));   // 总纲正文
-  mirror(SRC_HOOKS, path.join(cache, 'hooks'));                    // hook(CC 走 hook)
+  mirror(SRC_HOOKS, path.join(cache, 'hooks'));                    // hook(Claude Code 走 hook)
   log(`  ✓ skills + hooks 已同步`);
 }
 

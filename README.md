@@ -18,11 +18,11 @@
 
 ```
 superagents/
-├── .claude-plugin/       # CC 的 plugin + marketplace 清单
+├── .claude-plugin/       # Claude Code 的 plugin + marketplace 清单
 ├── .codex-plugin/        # codex 的 plugin 清单
 ├── .opencode/plugins/    # opencode 插件(superagents.mjs)
 ├── .agents/plugins/      # 通用 marketplace 清单(codex 用)
-├── hooks/                # CC 的 SessionStart hook(run-hook.cmd + session-start)
+├── hooks/                # Claude Code 的 SessionStart hook(run-hook.cmd + session-start)
 ├── skills/constitution/  # 总纲正文 SKILL.md + modules/
 ├── scripts/              # install.mjs(装) / sync.mjs(本机同步) / clean-opencode.mjs(清 opencode 缓存)
 └── package.json          # opencode 插件入口(main 字段)
@@ -32,7 +32,7 @@ superagents/
 
 ## 安装
 
-> **给 agent 的话:** 用户把本仓库地址交给你、让你安装时,照本节从上往下执行即可。CC/codex 一步到位;**opencode 要多补一步清理**(见"第二步"),别漏。命令跨 Windows / macOS / Linux 通用。
+> **给 agent 的话:** 用户把本仓库地址交给你、让你安装时,照本节从上往下执行即可。Claude Code/codex 一步到位;**opencode 要多补一步清理**(见"第二步"),别漏。命令跨 Windows / macOS / Linux 通用。
 
 前置:Node.js + 对应 CLI(`claude` / `codex`);opencode 走配置文件、无需 CLI。
 
@@ -44,7 +44,7 @@ cd superagents
 node scripts/install.mjs                 # 装三家;只装某家加 --cc | --codex | --opencode
 ```
 
-`install.mjs` 做的事:CC 用 `--sparse` 只拉自己目录、codex 整仓拉,两家装完都按**白名单**把 cache 清到只剩自己需要的;opencode 只往它配置里写一行依赖地址(要它首次运行才真正拉包)。
+`install.mjs` 做的事:Claude Code 用 `--sparse` 只拉自己目录、codex 整仓拉,两家装完都按**白名单**把 cache 清到只剩自己需要的;opencode 只往它配置里写一行依赖地址(要它首次运行才真正拉包)。
 
 ### 第二步(仅 opencode):清缓存杂物
 

@@ -5,7 +5,7 @@
  * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / codex / opencode，并保证
  * 每家装完的 cache 都干净（不含别家清单、docs、.claude 这些杂物）。
  * github 仓库保持全量，干净靠两条路：
- *   - CC   ：marketplace add --sparse，装时只拉自己的目录
+ *   - Claude Code：marketplace add --sparse，装时只拉自己的目录
  *   - codex：plugin add 会二次完整 clone，不能 sparse（partial clone 缺 blob 会失败），
  *            只能整仓装 + 装完 post-clean 删 cache 杂物
  *   - opencode：npm 式 git 依赖只能整仓，杂物留缓存但不加载
@@ -27,10 +27,10 @@ const PLUGIN = 'superagents';
 const HOME = os.homedir();
 const isWin = os.platform() === 'win32';
 
-// CC sparse 只拉这几个目录（.claude-plugin 里同时含 marketplace.json + plugin.json）
+// Claude Code sparse 只拉这几个目录（.claude-plugin 里同时含 marketplace.json + plugin.json）
 const CC_SPARSE = ['.claude-plugin', 'hooks', 'skills'];
 // post-clean 白名单：各家 cache 只保留这些，其余（仓库杂物 + 别家清单）一律删——比黑名单稳，仓库以后加新根文件也不漏
-const CC_KEEP = ['.claude-plugin', 'hooks', 'skills', '.in_use'];   // .in_use 是 CC 装插件的内部标记
+const CC_KEEP = ['.claude-plugin', 'hooks', 'skills', '.in_use'];   // .in_use 是 Claude Code 装插件的内部标记
 const CODEX_KEEP = ['.codex-plugin', 'skills'];
 
 const log = (m) => console.log(m);
@@ -38,6 +38,11 @@ const sh = (cmd) => execSync(cmd, { stdio: 'pipe', encoding: 'utf8' });
 const shLoud = (cmd) => { log('  $ ' + cmd); return execSync(cmd, { stdio: 'inherit' }); };
 const tryQuiet = (cmd) => { try { sh(cmd); return true; } catch { return false; } };
 const has = (bin) => { try { sh(isWin ? `where ${bin}` : `command -v ${bin}`); return true; } catch { return false; } };
+
+// 删目录（可传多个），不存在就跳过——plugin uninstall / marketplace remove 都不清 cache 实际文件，卸载后残留一份，靠它手动清
+function rmDir(...dirs) {
+  for (const d of dirs) { if (fs.existsSync(d)) fs.rmSync(d, { recursive: true, force: true }); }
+}
 
 // 白名单清理：cache 目录下只留 keepList 里的，其余全删（仓库杂物、别家清单一律清掉）
 function keepOnly(cacheDir, keepList) {
@@ -85,7 +90,7 @@ function installCC() {
   const cache = findPluginCache(ccBase);
   const rm = keepOnly(cache, CC_KEEP);                              // 白名单清理：只留自己需要的
   const pruned = pruneOldVersions(ccBase);                          // 删老版本目录，只留刚装的
-  log(`  ✓ CC 装好${rm.length ? '（清理：' + rm.join(', ') + '）' : ''}${pruned.length ? '（删老版本：' + pruned.join(', ') + '）' : ''}；plugin 自带 hooks.json，新会话自动注入`);
+  log(`  ✓ Claude Code 装好${rm.length ? '（清理：' + rm.join(', ') + '）' : ''}${pruned.length ? '（删老版本：' + pruned.join(', ') + '）' : ''}；plugin 自带 hooks.json，新会话自动注入`);
 }
 
 // ---------- codex ----------
@@ -139,8 +144,20 @@ function installOpencode() {
 // ---------- 卸载 ----------
 function uninstallAll() {
   log('\n=== 卸载 ===');
-  if (has('claude')) { tryQuiet(`claude plugin uninstall ${PLUGIN}@${MARKET}`); tryQuiet(`claude plugin marketplace remove ${MARKET}`); log('  CC 已卸'); }
-  if (has('codex'))  { tryQuiet(`codex plugin remove ${PLUGIN}@${MARKET}`); tryQuiet(`codex plugin marketplace remove ${MARKET}`); log('  codex 已卸'); }
+  if (has('claude')) {
+    tryQuiet(`claude plugin uninstall ${PLUGIN}@${MARKET}`);
+    tryQuiet(`claude plugin marketplace remove ${MARKET}`);
+    rmDir(path.join(HOME, '.claude', 'plugins', 'cache', MARKET),
+          path.join(HOME, '.claude', 'plugins', 'marketplaces', MARKET));   // uninstall/remove 不清实际文件，手动删残留
+    log('  Claude Code 已卸');
+  }
+  if (has('codex')) {
+    tryQuiet(`codex plugin remove ${PLUGIN}@${MARKET}`);
+    tryQuiet(`codex plugin marketplace remove ${MARKET}`);
+    rmDir(path.join(HOME, '.codex', 'plugins', 'cache', MARKET),
+          path.join(HOME, '.codex', '.tmp', 'marketplaces', MARKET));       // 同上
+    log('  codex 已卸');
+  }
   // codex hooks.json 去掉 constitution 那条
   const hooksJson = path.join(HOME, '.codex', 'hooks.json');
   if (fs.existsSync(hooksJson)) {
@@ -171,7 +188,7 @@ const args = process.argv.slice(2);
 if (args.includes('--uninstall')) { uninstallAll(); log('\n完成。'); process.exit(0); }
 const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));
 log(`superagents 跨 agent 安装器  (平台: ${os.platform()})`);
-if (all || args.includes('--cc'))       { try { installCC(); }       catch (e) { log('  CC 出错: ' + e.message); } }
+if (all || args.includes('--cc'))       { try { installCC(); }       catch (e) { log('  Claude Code 出错: ' + e.message); } }
 if (all || args.includes('--codex'))    { try { installCodex(); }    catch (e) { log('  codex 出错: ' + e.message); } }
 if (all || args.includes('--opencode')) { try { installOpencode(); } catch (e) { log('  opencode 出错: ' + e.message); } }
-log('\n完成。三家里 CC/codex 装完 cache 已清干净，opencode 杂物在缓存但不加载。');
+log('\n完成。三家里 Claude Code/codex 装完 cache 已清干净，opencode 杂物在缓存但不加载。');

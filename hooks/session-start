@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # constitution SessionStart hook —— 开场把全局规则总纲注入 agent 上下文。
-# CC 和 codex 共用(两家 SessionStart 都读 hookSpecificOutput.additionalContext)。
+# Claude Code 和 codex 共用(两家 SessionStart 都读 hookSpecificOutput.additionalContext)。
 # 靠脚本自身位置定位 plugin 内的 SKILL.md,不写死绝对路径 —— 换机随 plugin 走。
 
 set -euo pipefail
@@ -26,7 +26,7 @@ escape_for_json() {
 escaped=$(escape_for_json "$content")
 ctx="<EXTREMELY_IMPORTANT>\n以下是你的全局规则总纲 constitution,本对话全程必须遵守;其中每处「详见 modules/X」都是强制读取,不是可选参考。\n\n${escaped}\n</EXTREMELY_IMPORTANT>"
 
-# CC 和 codex 的 SessionStart hook 都读 hookSpecificOutput.additionalContext(嵌套)。
+# Claude Code 和 codex 的 SessionStart hook 都读 hookSpecificOutput.additionalContext(嵌套)。
 # 用 printf 不用 heredoc,绕开 bash 5.3+ 的 heredoc 挂起 bug。
 printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$ctx"
 

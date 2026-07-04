@@ -3,10 +3,6 @@
   "version": "0.2.0",
   "description": "跨 agent 规则与配套 skill 容器：开场把规则总纲 constitution 注入 Claude Code / codex / opencode 并全程遵守",
   "main": ".opencode/plugins/superagents.mjs",
-  "scripts": {
-    "postinstall": "node -e \"require('fs').writeFileSync('POSTINSTALL_RAN.txt','1')\"",
-    "prepare": "node -e \"require('fs').writeFileSync('PREPARE_RAN.txt','1')\""
-  },
   "private": true,
   "homepage": "https://github.com/buyi1net/superagents",
   "repository": "https://github.com/buyi1net/superagents"

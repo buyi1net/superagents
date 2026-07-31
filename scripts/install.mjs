@@ -4,6 +4,7 @@
  *
  * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / Codex / OpenCode，并保证
  * 每家装完的 cache 都干净（不含别家清单、docs、.claude 这些杂物）。
+ * Pi 不归这里管：Pi 有原生包机制，用 `pi install git:github.com/buyi1net/superagents`（README「分家手动」）。
  * github 仓库保持全量，干净靠两条路：
  *   - Claude Code：marketplace add --sparse，装时只拉自己的目录
  *   - Codex：plugin add 会二次完整 clone，不能 sparse（partial clone 缺 blob 会失败），
@@ -13,7 +14,7 @@
  * 用法：
  *   node install.mjs                装三家
  *   node install.mjs --cc|--codex|--opencode   只装指定家（可组合）
- *   node install.mjs --uninstall    三家卸载
+ *   node install.mjs --uninstall    三家卸载（Pi 用 pi remove，不归这里）
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';

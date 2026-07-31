@@ -28,6 +28,9 @@ superagents/
 ├── .opencode/                 # OpenCode 插件
 │   └── plugins/
 │       └── superagents.mjs    # 开场注入总纲的插件入口（package.json main 指向它）
+├── .pi/                       # Pi 扩展
+│   └── extensions/
+│       └── superagents.ts     # context 事件注入总纲（package.json 的 pi 字段声明）
 ├── AGENTS.md                  # agent 项目规则（本文件；CLAUDE.md 指向它）
 ├── CLAUDE.md                  # Claude Code 入口，内容就是 "AGENTS.md"
 ├── README.md                  # 安装 / 使用说明（面向装本插件的人和 agent）
@@ -35,22 +38,24 @@ superagents/
 │   ├── hooks.json             # hook 声明
 │   ├── run-hook.cmd           # 跨平台入口（Windows 走 cmd、unix 走 bash）
 │   └── session-start          # 读 SKILL.md、拼注入 JSON
-├── package.json               # OpenCode 插件入口（main 字段）
+├── package.json               # OpenCode 插件入口（main）+ Pi 包声明（pi 字段）
 ├── scripts/                   # 安装 / 同步脚本
 │   ├── clean-opencode.mjs     # 清 OpenCode 缓存杂物
-│   ├── install.mjs            # 从 github 装三家
-│   └── sync.mjs               # 本机改了正稿一键刷到三家
-└── skills/                    # 正式 skill 正稿库（跨 agent，打包 / 下发源）
-    └── constitution/          # 跨 agent 全局规则总纲
-        ├── SKILL.md           # 总纲正文
-        └── modules/           # 分场景规范（开发 / grill / 交接 / 网络 / 写作等）
+│   ├── install.mjs            # 从 github 装三家（Pi 不走这里，用 pi install）
+│   └── sync.mjs               # 本机改了正稿一键刷到三家（Pi 用 -e 直指仓库正稿，不用刷）
+├── skills/                    # 正式 skill 正稿库（跨 agent，打包 / 下发源）
+│   └── constitution/          # 跨 agent 全局规则总纲
+│       ├── SKILL.md           # 总纲正文
+│       └── modules/           # 分场景规范（开发 / grill / 交接 / 网络 / 写作等）
+└── tests/                     # 插件机制测试
+    └── pi/                    # Pi 扩展测试（node --test）
 ```
 
 ## 给 agent
 
 处理本项目文件时，按本文档中的纪律和质量标准执行。新建 skill 时逐条检查质量清单。不确定是否应该新建 skill 时，先确认痛点是否是重复模式。
 
-开发时改了 `skills/constitution/` 正稿、想同步到本机三家 agent 测试，跑 `node scripts/sync.mjs`——刷到各家 plugin cache、免重装立即生效（详见 README「本机开发同步」）。别再往各 agent 的独立 skill 目录下发：那套老机制（sync-skills）已废弃，会跟 plugin cache 里同一份 skill 撞车、制造 duplicate。
+开发时改了 `skills/constitution/` 正稿、想同步到本机三家 agent 测试，跑 `node scripts/sync.mjs`——刷到各家 plugin cache、免重装立即生效（详见 README「本机开发同步」）。Pi 不用刷：它装的是 github 包，更新走 `pi update git:github.com/buyi1net/superagents`。别再往各 agent 的独立 skill 目录下发：那套老机制（sync-skills）已废弃，会跟 plugin cache 里同一份 skill 撞车、制造 duplicate。
 
 ## 规则书写纲领
 

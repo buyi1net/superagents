@@ -5,8 +5,9 @@
  * 改自 superpowers .opencode/plugins/superpowers.js。
  * 靠 import.meta 相对定位 plugin 内的 SKILL.md,不写死绝对路径 —— 换机随 plugin 走。
  *
- * 只负责"注入总纲",不注册 skills.paths(skill 发现交给 codex-plugin 的 skills 声明 /
- * OpenCode 原生目录),避免和别处重复触发 duplicate skill 警告。
+ * 两条路:
+ *  - config 钩子:注册 skills.paths 让 OpenCode 发现插件内的所有 skill(constitution/grill 等)
+ *  - messages.transform:把 constitution 正文注入第一条 user 消息,确保核心规则不被忽略
  */
 import path from 'path';
 import fs from 'fs';
@@ -15,6 +16,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // .opencode/plugins/ 上溯两级 = plugin root;SKILL.md 在 skills/constitution/
 const SKILL_MD = path.resolve(__dirname, '..', '..', 'skills', 'constitution', 'SKILL.md');
+const skillsDir = path.resolve(__dirname, '..', '..', 'skills');
 
 // 剥 frontmatter,只留正文
 const stripFrontmatter = (content) => {
@@ -38,6 +40,15 @@ ${body}
 
 export const ConstitutionPlugin = async ({ client, directory }) => {
   return {
+    // 注册 skills.paths,让 OpenCode 发现插件内所有 skill(非 ~/.claude/skills 目录)
+    config: async (config) => {
+      config.skills = config.skills || {};
+      config.skills.paths = config.skills.paths || [];
+      if (!config.skills.paths.includes(skillsDir)) {
+        config.skills.paths.push(skillsDir);
+      }
+    },
+
     // 注入总纲到第一条 user 消息:用 user 而非 system,避免每轮重复的 system token 膨胀,
     // 也避免多条 system 破坏部分模型。transform 每个 agent step 都触发,故靠缓存 + 防重复 guard。
     'experimental.chat.messages.transform': async (_input, output) => {

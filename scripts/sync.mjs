@@ -24,7 +24,10 @@ const HOME = os.homedir();
 const MARKET = 'superagents-dz', PLUGIN = 'superagents';
 
 // 正稿源
-const SRC_SKILL = path.join(REPO, 'skills', 'constitution');
+const SRC_SKILLS = [
+  ['skills', 'constitution'],
+  ['skills', 'grill'],
+];
 const SRC_HOOKS = path.join(REPO, 'hooks');
 const SRC_OCPLUGIN = path.join(REPO, '.opencode', 'plugins', 'superagents.mjs');
 
@@ -72,7 +75,9 @@ function syncCC() {
   log('Claude Code:');
   const cache = findCache(path.join(HOME, '.claude', 'plugins', 'cache'));
   if (!cache) { log('  未装,跳过'); return; }
-  mirror(SRC_SKILL, path.join(cache, 'skills', 'constitution'));   // 总纲正文
+  for (const [dir, name] of SRC_SKILLS) {
+    mirror(path.join(REPO, dir, name), path.join(cache, dir, name));
+  }
   mirror(SRC_HOOKS, path.join(cache, 'hooks'));                    // hook(Claude Code 走 hook)
   log(`  ✓ skills + hooks 已同步`);
 }
@@ -81,7 +86,9 @@ function syncOpencode() {
   log('OpenCode:');
   const pkg = findOpencodePkg();
   if (!pkg) { log('  未装/未拉包,跳过'); return; }
-  mirror(SRC_SKILL, path.join(pkg, 'skills', 'constitution'));
+  for (const [dir, name] of SRC_SKILLS) {
+    mirror(path.join(REPO, dir, name), path.join(pkg, dir, name));
+  }
   fs.mkdirSync(path.join(pkg, '.opencode', 'plugins'), { recursive: true });
   fs.cpSync(SRC_OCPLUGIN, path.join(pkg, '.opencode', 'plugins', 'superagents.mjs'));
   // 顺手按白名单清包内杂物（跟 clean-opencode.mjs 一致：OpenCode 只加载这三样）

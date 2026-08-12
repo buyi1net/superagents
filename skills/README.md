@@ -1,9 +1,9 @@
-# Skill 源稿
+# Skill 源稿目录
 
-本目录是插件发布使用的正式 skill 源稿。各 skill 由自己的 `SKILL.md` 作为加载入口，同时用 README 说明目录职责和直接内容。
+本目录是仓库维护层的 skill 总目录地图。下面列出当前实际存在的交付包；每个交付包内部按其发布接口保留必要文件，不在包内追加项目维护用的 README。
 
-## 直接内容
+## 交付包
 
-- [constitution/](./constitution/)：跨 Agent 全局规则总纲。
-- [grill/](./grill/)：需求追问 skill。
-- [handoff/](./handoff/)：工作交接 skill。
+- [constitution/](./constitution/)：跨 Agent 全局规则总纲，加载入口为 [constitution/SKILL.md](./constitution/SKILL.md)。
+- [grill/](./grill/)：需求追问 skill，加载入口为 [grill/SKILL.md](./grill/SKILL.md)。
+- [handoff/](./handoff/)：工作交接 skill，加载入口为 [handoff/SKILL.md](./handoff/SKILL.md)。

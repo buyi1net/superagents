@@ -15,23 +15,30 @@
 | **Codex** | skill 引用(开场露 description、正文按需调) | 软(靠模型自觉;Codex 的 hook 对 `exec` 不触发,故走此路) |
 | **Pi** | 扩展 context 事件注入**全文**(user 消息,插在消息列表开头) | 强(开场强制;压缩后自动重注入) |
 
-## 目录结构
+## 目录地图
 
-```
-superagents/
-├── .claude-plugin/       # Claude Code 的 plugin + marketplace 清单
-├── .codex-plugin/        # Codex 的 plugin 清单
-├── .opencode/plugins/    # OpenCode 插件(superagents.mjs)
-├── .pi/extensions/      # Pi 扩展(superagents.ts,package.json 的 pi 字段声明)
-├── .agents/plugins/      # 通用 marketplace 清单(Codex 用)
-├── hooks/                # Claude Code 的 SessionStart hook(run-hook.cmd + session-start)
-├── skills/constitution/  # 总纲正文 SKILL.md + modules/
-├── scripts/              # install.mjs(装) / sync.mjs(本机同步) / clean-opencode.mjs(清 OpenCode 缓存)
-├── tests/                # 各插件机制测试(tests/pi/ 是 Pi 扩展测试)
-└── package.json          # OpenCode 插件入口(main)+ Pi 包声明(pi 字段)
-```
+下面只列当前实际存在、对使用者有导航价值的直接目录；工具链例外保持在根目录，是因为各插件清单和 `package.json` 直接引用它们。
 
-各家的清单目录(`.xxx-plugin`)必须放在仓库根——安装时各家先扫根目录的清单认出 plugin,再按清单去 `hooks/`、`skills/` 取内容。
+- [docs/](./docs/)：插件机制和维护流程资料。
+- [hooks/](./hooks/)：Claude Code 的 SessionStart hook。
+- [reference/](./reference/)：外部项目、分析和资料收集。
+- [scripts/](./scripts/)：安装、同步和缓存清理脚本。
+- [skills/](./skills/)：正式 skill 源稿，入口见 [skills/README.md](./skills/README.md)。
+- [.agents/plugins/](./.agents/plugins/)：通用 marketplace 清单。
+- [.claude/](./.claude/)：本地 Claude Code 设置，不进入插件发布物。
+- [.claude-plugin/](./.claude-plugin/)：Claude Code plugin 和 marketplace 清单。
+- [.codex-plugin/](./.codex-plugin/)：Codex plugin 清单。
+- [.opencode/](./.opencode/)：OpenCode 插件入口。
+- [.pi/](./.pi/)：Pi 扩展入口。
+
+根目录入口和元数据：
+
+- [AGENTS.md](./AGENTS.md)：Agent 路由入口。
+- [CLAUDE.md](./CLAUDE.md)：Claude 路由入口。
+- [package.json](./package.json)：OpenCode 插件入口和 Pi 包声明。
+- [.gitignore](./.gitignore)：版本库忽略规则。
+
+各家的清单目录必须保留在仓库根目录；安装时各家先读取自己的清单，再按清单去 [hooks/](./hooks/) 和 [skills/](./skills/) 取内容。
 
 ## 安装
 
@@ -98,8 +105,6 @@ node scripts/sync.mjs
 
 Pi 不用刷:它装的是 github 包,更新走 `pi update git:github.com/buyi1net/superagents`。
 
-## 测试
+## 验证
 
-```bash
-node --test tests/pi/test-pi-extension.mjs   # Pi 扩展注入机制测试
-```
+当前仓库没有提交 `tests/` 目录或可运行的自动化测试文件，因此不能声称已有测试通过。修改插件注入逻辑后，应先补充实际测试，再在本节登记可运行命令和真实结果。

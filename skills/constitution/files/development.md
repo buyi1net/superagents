@@ -11,12 +11,12 @@
 新建代码项目或首次接入既有项目时，顺序固定为：
 
 1. 检查根目录和已有入口，先读取 `files/general.md`、本文件以及目标目录入口。
-2. 确认或补齐根目录 `README.md` 和 `AGENTS.md`。
+2. 确认或补齐根目录 `README.md`、`AGENTS.md` 和 `CLAUDE.md`；三个文件缺一不可。
 3. 在 `README.md` 建立当前实际的直接目录地图，在 `AGENTS.md` 建立规则路由。
 4. 根据实际需求创建一级目录和人工维护子目录，并同时创建各自的 `README.md`。
 5. 开发、测试、构建和交付结束后，执行本文件的治理验收，再报告完成。
 
-根目录 `README.md` 面向人类，`AGENTS.md` 只负责 Agent 路由；如果存在 `CLAUDE.md`，它必须只用相对链接路由到同级 `AGENTS.md`。任何 Agent 读取 `CLAUDE.md` 后都要继续读取 `AGENTS.md`。
+根目录 `README.md` 面向人类，`AGENTS.md` 只负责通用 Agent 路由，`CLAUDE.md` 只负责 Claude 路由。`CLAUDE.md` 必须用相对链接指向同级 `AGENTS.md`；任何 Agent 读取 `CLAUDE.md` 后都要继续读取 `AGENTS.md`。三个入口不得互相复制正文。
 
 ## 三、九类一级目录的默认分工
 
@@ -98,7 +98,7 @@
 
 交付前必须对实际磁盘执行以下检查，不能只凭测试、构建或 Agent 自述：
 
-1. 入口：根目录 `README.md`、`AGENTS.md` 存在且职责正确；若有 `CLAUDE.md`，只路由到 `AGENTS.md`。
+1. 入口：根目录 `README.md`、`AGENTS.md` 和 `CLAUDE.md` 均存在且职责正确；`CLAUDE.md` 只路由到同级 `AGENTS.md`。
 2. 地图：每个人工维护目录都有 `README.md`；每张地图只列实际直接子目录；地图和交叉引用使用可点击相对链接，目标真实存在。
 3. 复杂度：没有无用途的空目录、重复说明、无理由的深层交付目录或过度拆分；每个分类都能说明其职责。
 4. 落点：源码、测试、脚本、文档、参考资料、构建物、运行数据、缓存和临时物均按生命周期归位。

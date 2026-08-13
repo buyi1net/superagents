@@ -1,6 +1,6 @@
 ---
 name: herdr-pi-governance-test
-description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后使用用户预先提供的测试目录，在 Herdr 当前 workspace 左侧建立上下两个新 pane、启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目，也不负责创建测试目录。
+description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后使用用户预先提供的测试目录，在 Herdr 当前 workspace 左侧建立上下两个新 pane、按目录名后缀选择模型、启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目，也不负责创建测试目录。
 ---
 
 # Herdr Pi 治理回归
@@ -23,6 +23,7 @@ description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存
 - 不创建、初始化、重命名、移动、清空或删除测试根目录。不得执行 `mkdir`、`git init`、脚手架初始化或等价操作来补齐外层测试目录。
 - 测试 Agent 可以在用户提供的目录内部按题目创建源码和治理要求的子目录；这不等于本 skill 可以创建新的测试根目录。
 - 用于运行、打包抽取或审计的临时副本目录也必须由用户提供，或由用户明确授权使用系统临时目录；默认不创建任何额外测试/审计根目录。
+- 测试目录名末尾为 `-d` 或 `-D` 时固定使用 DeepSeek，末尾为 `-g` 或 `-G` 时固定使用 GLM；例如 `D:\260813-D` 跑 DeepSeek、`E:\260813-G` 跑 GLM。后缀不匹配、含义不唯一或无法确认时停止，不按 pane 位置、旧名称或模型习惯猜测。
 
 在分割 pane 前只做只读核验，例如：
 
@@ -41,7 +42,7 @@ test "$test_root_top" != "$test_root_bottom"
    - `skills/constitution/SKILL.md`
    - 需要修改文档时再读取 `skills/constitution/modules/zh-cn-writing.md`。
 2. 先检查 `git status --short --branch` 和 `git diff`。保留用户已有改动；提交时只纳入本轮明确的治理规则或 skill 文件。
-3. 收集本轮输入：目标分支、两个模型配置、thinking 等级、用户预先提供的两个独立项目根路径、两个唯一的 Agent 名称、最新治理规则来源，以及一份本轮从未用过的测试题。先按“测试目录边界”核验路径，再继续后续步骤。需要比较模型时，默认把同一份新题目派给两路；用户要求差异化测试时，分别准备两份新题目。
+3. 收集本轮输入：目标分支、thinking 等级、用户预先提供的两个独立项目根路径、两个唯一的 Agent 名称、最新治理规则来源，以及一份本轮从未用过的测试题。先按“测试目录边界”核验路径和模型后缀映射，再继续后续步骤；模型不再由 pane 顺序或临时偏好决定。需要比较模型时，默认把同一份新题目派给两路；用户要求差异化测试时，分别准备两份新题目。
 4. 若要控制 Herdr，先在 Git Bash 执行：
 
    ```bash
@@ -106,7 +107,24 @@ test "$test_root_top" != "$test_root_bottom"
 
 ### 目标布局
 
-保留用户原有工作在右侧，左侧为本轮两个测试 pane：上方和下方各一个，均从干净的交互式 shell 启动 Pi。不要关闭或移动未由本轮创建的 workspace、tab、pane。
+保留用户原有工作在右侧，左侧为本轮两个测试 pane：上方和下方各一个，均从干净的交互式 shell 启动 Pi。建立新一轮前，先按下一节关闭已确认属于上一轮的旧测试 pane；不得关闭用户 pane、当前工作 pane 或无关 pane。
+
+### 清理上一轮测试 pane
+
+在分割新 pane 前，读取当前 workspace 的实际 pane 列表和布局，按旧测试目录、旧标签或本轮记录确认哪些 pane 属于上一轮测试：
+
+```bash
+herdr pane list --workspace "$HERDR_WORKSPACE_ID"
+herdr pane layout --pane "$HERDR_PANE_ID"
+```
+
+只关闭已确认的旧测试 pane，并记录关闭前的 pane ID、cwd、标签和 Agent；不要根据侧栏顺序猜测目标：
+
+```bash
+herdr pane close <上一轮测试 pane-id>
+```
+
+关闭后只做一次列表/布局复核，确认用户 pane 仍在且旧测试 pane 已释放。目标不明确、pane 仍有用户工作或无法判断归属时停止，不关闭任何 pane；不得为了腾出位置关闭用户 pane 或无关 Agent。
 
 ### 由单一当前 pane 创建左列
 
@@ -148,11 +166,11 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
 
 ### 启动全新 Pi 会话
 
-1. 启动前用 `herdr pane process-info` 或等价的只读信息确认两个 pane 的 cwd 分别等于用户提供的两个测试根；两个 pane 都必须是交互式 shell，没有前台命令、编辑器或旧 Agent。每个 pane 都用 `pane run` 手动启动，不能用不可控的旧 session 续接：
+1. 启动前用 `herdr pane process-info` 或等价的只读信息确认两个 pane 的 cwd 分别等于用户提供的两个测试根；两个 pane 都必须是交互式 shell，没有前台命令、编辑器或旧 Agent。根据测试目录名末尾选择模型：`-d` / `-D` 使用 `deepseek/deepseek-v4-flash`，`-g` / `-G` 使用 `zai-coding-cn/glm-5.2`。模型映射不清楚就停止，不得交换或自行指定。每个 pane 都用 `pane run` 手动启动，不能用不可控的旧 session 续接：
 
    ```bash
-   herdr pane run <上方 pane-id> "pi --model <provider/model> --thinking <level>"
-   herdr pane run <下方 pane-id> "pi --model <provider/model> --thinking <level>"
+   herdr pane run <`-d` / `-D` 测试目录对应 pane-id> "pi --model deepseek/deepseek-v4-flash --thinking <level>"
+   herdr pane run <`-g` / `-G` 测试目录对应 pane-id> "pi --model zai-coding-cn/glm-5.2 --thinking <level>"
    ```
 
    治理回归默认使用用户指定的 `max`；若用户另有明确等级，以用户要求为准。模型、thinking、cwd 和启动时间必须记入最终报告。
@@ -203,6 +221,6 @@ herdr agent read <agent 名称> --source recent-unwrapped --lines 120
 
 - Git 提交、推送或远端 SHA 校验失败：保留现场，停止同步后的步骤并报告，不强推、不重写历史。
 - `pi update --all` 失败或缓存 SHA 不一致：报告缓存实际状态，不使用旧缓存冒充新规则。
-- pane 分割、交换或启动失败：先读取一次命令错误和当前布局；只复用本轮明确创建的空 pane，不关闭用户既有 pane。
+- pane 分割、交换或启动失败：先读取一次命令错误和当前布局；只复用本轮明确创建的空 pane。建立新轮次时可以按“清理上一轮测试 pane”关闭已确认的旧测试 pane，但不得关闭用户既有 pane 或无关 Agent。
 - Agent 进入 `blocked`：只读取阻塞原因，按用户授权决定是否发送一次明确答复；不通过轮询绕过阻塞。
 - 当前会话无法接收主动通知：按照 Herdr skill 的兼容模式使用 `--wait` 或 `agent wait`，并在报告中说明等待机制不同。

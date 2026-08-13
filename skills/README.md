@@ -7,3 +7,4 @@
 - [constitution/](./constitution/)：跨 Agent 全局规则总纲，加载入口为 [constitution/SKILL.md](./constitution/SKILL.md)。
 - [grill/](./grill/)：需求追问 skill，加载入口为 [grill/SKILL.md](./grill/SKILL.md)。
 - [handoff/](./handoff/)：工作交接 skill，加载入口为 [handoff/SKILL.md](./handoff/SKILL.md)。
+- [herdr-pi-governance-test/](./herdr-pi-governance-test/)：治理规则发布、Pi 缓存核验和 Herdr 双 Pi 回归测试流程，加载入口为 [herdr-pi-governance-test/SKILL.md](./herdr-pi-governance-test/SKILL.md)。

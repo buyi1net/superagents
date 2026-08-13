@@ -1,13 +1,13 @@
 ---
 name: herdr-pi-governance-test
-description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后使用用户预先提供的测试目录，在 Herdr 当前 workspace 左侧建立上下两个新 pane、按操作者明确指定的模型启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目，也不负责创建测试目录。
+description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后使用用户预先提供的测试目录，在 Herdr 当前 workspace 右侧建立上下两个新 pane、按操作者明确指定的模型启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目，也不负责创建测试目录。
 ---
 
 # Herdr Pi 治理回归
 
 ## 目标和边界
 
-把一次治理规则回归从本地变更推进到可审计的测试结果：规则源稿提交并推送后，确认远端和 Pi 缓存已到同一提交，再在当前 Herdr workspace 的左侧上下布局启动两个全新的 Pi 会话，派发未复用的开发题目，等待主动完成通知，最后只读核验真实产物。
+把一次治理规则回归从本地变更推进到可审计的测试结果：规则源稿提交并推送后，确认远端和 Pi 缓存已到同一提交，再在当前 Herdr workspace 的右侧上下布局启动两个全新的 Pi 会话，保留用户工作在左侧，派发未复用的开发题目，等待主动完成通知，最后只读核验真实产物。
 
 本 skill 只固化流程，不替测试 Agent 修复代码，不删除测试产物，不把被测项目的 `AGENTS.md`、`README.md` 或其他入口当作当前会话的制度来源。测试 Agent 的自述必须和磁盘、版本库、构建输出及进程证据分开记录。
 
@@ -103,11 +103,11 @@ test "$test_root_top" != "$test_root_bottom"
 
    需要验证多个文件时重复比较；任何 SHA 或内容不一致都标记为同步失败，不启动依赖最新规则的测试。更新过程改写了仓库外缓存，报告实际路径和影响，不擅自清理其他缓存。
 
-## 三、在 Herdr 左侧建立上下布局
+## 三、在 Herdr 右侧建立上下布局
 
 ### 目标布局
 
-保留用户原有工作在右侧，左侧为本轮两个测试 pane：上方和下方各一个，均从干净的交互式 shell 启动 Pi。建立新一轮前，先按下一节关闭已确认属于上一轮的旧测试 pane；不得关闭用户 pane、当前工作 pane 或无关 pane。
+保留用户原有工作在左侧，右侧为本轮两个测试 pane：上方和下方各一个，均从干净的交互式 shell 启动 Pi。建立新一轮前，先按下一节关闭已确认属于上一轮的旧测试 pane；不得关闭用户 pane、当前工作 pane 或无关 pane。
 
 ### 清理上一轮测试 pane
 
@@ -128,9 +128,9 @@ herdr pane close <上一轮测试 pane-id>
 
 关闭后只做一次列表/布局复核，确认用户 pane 仍在且旧测试 pane 已释放。目标不明确、pane 仍有用户工作或无法判断归属时停止，不关闭任何 pane；不得为了腾出位置关闭用户 pane 或无关 Agent。
 
-### 由单一当前 pane 创建左列
+### 由单一当前 pane 创建右列
 
-Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane 建左列时，用“先向右分割，再交换内容，再向下分割”的顺序：
+Herdr 的 `pane split` 当前只接受 `right`、`down`。当前 pane 是用户工作区时，直接“先向右分割，再向下分割”，不交换 pane 内容：
 
 1. 记录调用上下文和当前 pane 的真实 ID，并查看布局：
 
@@ -146,19 +146,13 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
    herdr pane split --current --direction right --cwd "$test_root_top" --no-focus
    ```
 
-3. 用实际返回的两个 pane ID 交换内容，使调用者的原 shell 回到右侧、左侧留下新 shell：
+3. 对右侧上方 shell（上一步返回的 pane ID；仍须以 `herdr pane layout` 复核）向下分割到用户提供的下方测试根：
 
    ```bash
-   herdr pane swap --source-pane <原当前 pane ID> --target-pane <新 pane ID>
+   herdr pane split --pane <右侧上方 pane ID> --direction down --cwd "$test_root_bottom" --no-focus
    ```
 
-4. 对左侧上方 shell（交换前的原当前 pane ID；仍须以 `herdr pane layout` 复核）向下分割到用户提供的下方测试根：
-
-   ```bash
-   herdr pane split --pane <左侧上方 pane ID> --direction down --cwd "$test_root_bottom" --no-focus
-   ```
-
-   读取返回 JSON，得到左侧下方 pane ID。最终再次读取布局，确认用户 pane 在右侧、两个新 shell 在左侧上下排列。若当前 workspace 已经有合适的左列，先读取布局并复用明确空闲的 shell pane，不要机械追加列。
+   读取返回 JSON，得到右侧下方 pane ID。最终再次读取布局，确认用户 pane 在左侧、两个新 shell 在右侧上下排列。若当前 workspace 已经有合适的右列，先读取布局并复用明确空闲的 shell pane，不要机械追加列。
 
 5. 给两个 pane 设置本轮唯一且可追踪的名称，例如 `glm-round-<日期>` 和 `deepseek-round-<日期>`；名称必须符合 Herdr 的命名限制并且在当前 workspace 唯一：
 
@@ -171,8 +165,8 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
 1. 启动前用 `herdr pane process-info` 或等价的只读信息确认两个 pane 的 cwd 分别等于用户提供的两个测试根；两个 pane 都必须是交互式 shell，没有前台命令、编辑器或旧 Agent。按操作者已明确指定的模型启动；模型配置必须和最终报告中的目录、pane、Agent 一一对应，不能从目录后缀推断或临时交换。每个 pane 都用 `pane run` 手动启动，不能用不可控的旧 session 续接：
 
    ```bash
-   herdr pane run <上方 pane-id> "pi --model <操作者指定的上方模型> --thinking <level>"
-   herdr pane run <下方 pane-id> "pi --model <操作者指定的下方模型> --thinking <level>"
+   herdr pane run <右侧上方 pane-id> "pi --model <操作者指定的上方模型> --thinking <level>"
+   herdr pane run <右侧下方 pane-id> "pi --model <操作者指定的下方模型> --thinking <level>"
    ```
 
    治理回归默认使用用户指定的 `max`；若用户另有明确等级，以用户要求为准。模型、thinking、cwd 和启动时间必须记入最终报告。
@@ -185,8 +179,8 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
    使用：
 
    ```bash
-   herdr agent prompt <上方 agent 名称> "<题目>"
-   herdr agent prompt <下方 agent 名称> "<题目>"
+   herdr agent prompt <右侧上方 agent 名称> "<题目>"
+   herdr agent prompt <右侧下方 agent 名称> "<题目>"
    ```
 
 ## 四、等待和审计

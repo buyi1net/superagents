@@ -11,6 +11,8 @@ description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存
 
 本 skill 只固化流程，不替测试 Agent 修复代码，不删除测试产物，不把被测项目的 `AGENTS.md`、`README.md` 或其他入口当作当前会话的制度来源。测试 Agent 的自述必须和磁盘、版本库、构建输出及进程证据分开记录。
 
+本文件位于 `.agents/skills/`，是本仓库维护专用的项目级 skill，不属于 `skills/` 正式发布源；发布阶段不得把它复制到 `skills/`，Pi 缓存核验也只针对本轮需要发布的正式治理规则文件。
+
 ## 测试目录边界
 
 测试目录由用户提供，本 skill 只验证和使用，不负责创建：

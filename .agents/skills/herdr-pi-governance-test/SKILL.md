@@ -1,6 +1,6 @@
 ---
 name: herdr-pi-governance-test
-description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后在 Herdr 当前 workspace 左侧建立上下两个新 pane、启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目。
+description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存，然后使用用户预先提供的测试目录，在 Herdr 当前 workspace 左侧建立上下两个新 pane、启动两路全新 Pi 会话并完成治理回归测试。用户要求上传规则、拉取验证、开 Pi 测试会话、比较多个模型或复测文件治理时使用；不用于普通 Pi 启动、普通 Git 发布或修改被测项目，也不负责创建测试目录。
 ---
 
 # Herdr Pi 治理回归
@@ -11,6 +11,26 @@ description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存
 
 本 skill 只固化流程，不替测试 Agent 修复代码，不删除测试产物，不把被测项目的 `AGENTS.md`、`README.md` 或其他入口当作当前会话的制度来源。测试 Agent 的自述必须和磁盘、版本库、构建输出及进程证据分开记录。
 
+## 测试目录边界
+
+测试目录由用户提供，本 skill 只验证和使用，不负责创建：
+
+- 启动前必须拿到两个由用户明确给出的、互不相同的绝对路径；两个路径必须已经存在且确实是目录。
+- 缺少路径、路径不存在、路径相同或无法访问时，立即停止，不自行猜测旧路径，不从历史会话、记忆或题目推导路径。
+- 默认要求测试根位于 `D:\superagents` 之外；不得把治理仓库本身或其子目录当作测试根，除非老大在本轮明确授权。
+- 不创建、初始化、重命名、移动、清空或删除测试根目录。不得执行 `mkdir`、`git init`、脚手架初始化或等价操作来补齐外层测试目录。
+- 测试 Agent 可以在用户提供的目录内部按题目创建源码和治理要求的子目录；这不等于本 skill 可以创建新的测试根目录。
+- 用于运行、打包抽取或审计的临时副本目录也必须由用户提供，或由用户明确授权使用系统临时目录；默认不创建任何额外测试/审计根目录。
+
+在分割 pane 前只做只读核验，例如：
+
+```bash
+test -d "$test_root_top" && test -d "$test_root_bottom"
+test "$test_root_top" != "$test_root_bottom"
+```
+
+核验失败就报告缺少用户输入，不要继续创建 pane 或启动 Agent。
+
 ## 开始前
 
 1. 确认当前目录是 `D:\superagents`（或该仓库的等价路径），读取：
@@ -19,7 +39,7 @@ description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存
    - `skills/constitution/SKILL.md`
    - 需要修改文档时再读取 `skills/constitution/modules/zh-cn-writing.md`。
 2. 先检查 `git status --short --branch` 和 `git diff`。保留用户已有改动；提交时只纳入本轮明确的治理规则或 skill 文件。
-3. 收集本轮输入：目标分支、测试模型、thinking 等级、两个独立项目根路径、两个唯一的 Agent 名称，以及一份本轮从未用过的测试题。需要比较模型时，默认把同一份新题目派给两路；用户要求差异化测试时，分别准备两份新题目。
+3. 收集本轮输入：目标分支、两个模型配置、thinking 等级、用户预先提供的两个独立项目根路径、两个唯一的 Agent 名称、最新治理规则来源，以及一份本轮从未用过的测试题。先按“测试目录边界”核验路径，再继续后续步骤。需要比较模型时，默认把同一份新题目派给两路；用户要求差异化测试时，分别准备两份新题目。
 4. 若要控制 Herdr，先在 Git Bash 执行：
 
    ```bash
@@ -98,10 +118,10 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
    herdr pane layout --pane "$HERDR_PANE_ID"
    ```
 
-2. 在当前 pane 向右创建一个同目录、不给焦点的新 shell，记下 JSON 返回的 pane ID：
+2. 在当前 pane 向右创建一个位于用户提供的上方测试根、不给焦点的新 shell，记下 JSON 返回的 pane ID；这里不能使用不存在的路径，也不能为了满足 `--cwd` 创建目录：
 
    ```bash
-   herdr pane split --current --direction right --cwd "$PWD" --no-focus
+   herdr pane split --current --direction right --cwd "$test_root_top" --no-focus
    ```
 
 3. 用实际返回的两个 pane ID 交换内容，使调用者的原 shell 回到右侧、左侧留下新 shell：
@@ -110,10 +130,10 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
    herdr pane swap --source-pane <原当前 pane ID> --target-pane <新 pane ID>
    ```
 
-4. 对左侧 shell（交换前的原当前 pane ID；仍须以 `herdr pane layout` 复核）向下分割：
+4. 对左侧上方 shell（交换前的原当前 pane ID；仍须以 `herdr pane layout` 复核）向下分割到用户提供的下方测试根：
 
    ```bash
-   herdr pane split --pane <左侧上方 pane ID> --direction down --cwd "$PWD" --no-focus
+   herdr pane split --pane <左侧上方 pane ID> --direction down --cwd "$test_root_bottom" --no-focus
    ```
 
    读取返回 JSON，得到左侧下方 pane ID。最终再次读取布局，确认用户 pane 在右侧、两个新 shell 在左侧上下排列。若当前 workspace 已经有合适的左列，先读取布局并复用明确空闲的 shell pane，不要机械追加列。
@@ -126,7 +146,7 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
 
 ### 启动全新 Pi 会话
 
-1. 确认两个 pane 都是交互式 shell，没有前台命令、编辑器或旧 Agent。每个 pane 都用 `pane run` 手动启动，不能用不可控的旧 session 续接：
+1. 启动前用 `herdr pane process-info` 或等价的只读信息确认两个 pane 的 cwd 分别等于用户提供的两个测试根；两个 pane 都必须是交互式 shell，没有前台命令、编辑器或旧 Agent。每个 pane 都用 `pane run` 手动启动，不能用不可控的旧 session 续接：
 
    ```bash
    herdr pane run <上方 pane-id> "pi --model <provider/model> --thinking <level>"
@@ -134,10 +154,10 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
    ```
 
    治理回归默认使用用户指定的 `max`；若用户另有明确等级，以用户要求为准。模型、thinking、cwd 和启动时间必须记入最终报告。
-2. 等 Pi 被 Herdr 识别为可交互 Agent 后，用唯一名称派题。两路需要公平比较时发送同一份新题目；题目内容必须包含：先读最新治理规则、从项目根规划、实现完整任务、运行测试和构建、报告真实磁盘证据，并明确不要修复或清理测试结果。示例模板：
+2. 等 Pi 被 Herdr 识别为可交互 Agent 后，用唯一名称派题。两路需要公平比较时发送同一份新题目；题目内容必须包含：从操作者给出的规则来源读取最新治理规则、从用户提供的项目根规划、实现完整任务、运行测试和构建、报告真实磁盘证据，并明确不要修复或清理测试结果。不要让 Agent 把测试目录里的入口文件当作本会话的制度来源。示例模板：
 
    ```text
-   这是全新治理回归测试，禁止复用旧会话、旧题目或旧产物。先阅读指定的最新治理规则，再从项目根规划并实现以下任务：<本轮新题目>。完成后运行适合的测试和构建，检查目录、入口、链接、运行数据、交付物和项目外副作用；只报告真实证据，不让本会话替你修复或清理结果。
+   这是全新治理回归测试，禁止复用旧会话、旧题目或旧产物。你当前工作目录就是用户提供的测试根，不要另建外层项目目录。请从 `<最新治理规则来源>` 读取规则，再从项目根规划并实现以下任务：<本轮新题目>。完成后运行适合的测试和构建，检查目录、入口、链接、运行数据、交付物和项目外副作用；只报告真实证据，不让本会话替你修复或清理结果。
    ```
 
    使用：
@@ -155,13 +175,13 @@ Herdr 的 `pane split` 当前只接受 `right`、`down`。因此从当前 pane �
 herdr agent read <agent 名称> --source recent-unwrapped --lines 120
 ```
 
-只有最终回报缺少关键证据时，才补充一次读取或让 Agent 把完整回报写到临时目录再直接读取；不要把临时回报写入测试项目根。
+只有最终回报缺少关键证据时，才补充一次读取或让 Agent 把完整回报写到用户预先提供、且不属于测试根的临时路径再直接读取；没有这类路径时就报告证据不足，不自行创建临时目录，也不要把临时回报写入测试项目根。
 
 收到两路回报后，主会话只读检查实际结果，不替模型改动：
 
 - 扫描项目根的实际一级、二级目录，核对 README、AGENTS、CLAUDE、地图链接和职责边界；不要用 Agent 自述替代扫描。
 - 分开检查源码、测试、脚本、文档、设计材料、构建暂存、交付包和运行数据；确认交付包的类型、完整性、可重建性和是否夹带运行时缓存。
-- 检查测试命令、构建命令和可运行副本的结果；构建暂存不能直接冒充运行根，打包后要在临时/抽取副本验证并重新扫描原包。
+- 检查测试命令、构建命令和可运行副本的结果；构建暂存不能直接冒充运行根，打包后要在用户提供或明确授权的临时/抽取副本验证并重新扫描原包；没有这类副本路径时不自行创建，明确报告无法完成该项验证。
 - 检查项目根外是否新增进程、端口、服务、计划任务、环境变量、全局安装或其他系统副作用；只记录证据，不擅自卸载、删除或修复。
 - 记录两路相同点和差异点，区分“规则明确要求”“规则没有覆盖”“Agent 自行决策”和“证据不足”。
 

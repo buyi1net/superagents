@@ -1,1 +1,1 @@
-[查看 AGENTS.md](./AGENTS.md)。本文件只做路由，禁止写入其它内容。
+读取 [AGENTS.md](./AGENTS.md)。禁止在此文件写入内容。

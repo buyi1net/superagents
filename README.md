@@ -24,6 +24,7 @@
 - [reference/](./reference/)：外部项目、分析和资料收集。
 - [scripts/](./scripts/)：安装、同步和缓存清理脚本。
 - [skills/](./skills/)：正式 skill 交付源稿，目录地图见 [skills/README.md](./skills/README.md)。
+- [.agents/skills/](./.agents/skills/)：本仓库维护和治理测试专用的项目级 skill，不纳入正式插件交付。
 - [.agents/plugins/](./.agents/plugins/)：通用 marketplace 清单。
 - [.claude/](./.claude/)：本地 Claude Code 设置，不进入插件发布物。
 - [.claude-plugin/](./.claude-plugin/)：Claude Code plugin 和 marketplace 清单。

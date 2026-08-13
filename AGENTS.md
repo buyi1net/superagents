@@ -16,6 +16,7 @@
 
 - 根目录下的插件清单、`package.json`、`hooks/`、`skills/`、`.opencode/` 和 `.pi/` 属于工具链接口；移动或重命名前必须同时检查清单、脚本和 README 中的路径。
 - `skills/` 是正式 skill 源稿，`skills/constitution/` 是全局规则唯一来源；不要在各 Agent 的独立目录复制另一份正稿。
+- `.agents/skills/` 只保存本仓库维护和治理测试所需的项目级 skill，不属于正式插件发布源；修改它时仍须更新 `.agents/README.md` 的地图。
 - 安装、同步和缓存清理会改写项目根目录之外的 Agent 配置或缓存；只有用户明确要求时执行，并先阅读 [README.md](./README.md) 中对应的影响说明。
 
 ## 维护入口

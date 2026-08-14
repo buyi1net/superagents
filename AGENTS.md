@@ -6,8 +6,8 @@
 
 ## Agent 路由
 
-1. 处理本仓库的任何文件前，先读通用文件治理 [files/general.md](./skills/constitution/files/general.md)。
-2. 创建、修改、构建、测试或交付代码时，继续读开发场景治理 [files/development.md](./skills/constitution/files/development.md)。
+1. 处理本仓库的任何文件前，先读通用文件治理 [management/general.md](./skills/constitution/management/general.md)。
+2. 创建、修改、构建、测试或交付代码时，继续读开发场景治理 [management/development.md](./skills/constitution/management/development.md)。
 3. 修改代码前读 [development/coding.md](./skills/constitution/development/coding.md)。
 4. 修改 README、文档、注释或提交说明前读 [modules/zh-cn-writing.md](./skills/constitution/modules/zh-cn-writing.md)。
 5. 研究插件注入、安装和同步流程时，读 [插件化机制说明](./docs/插件化机制-流程与踩坑.md)。
@@ -22,6 +22,6 @@
 ## 维护入口
 
 - 人类使用和安装： [README.md](./README.md)
-- 通用治理： [files/general.md](./skills/constitution/files/general.md)
-- 开发治理： [files/development.md](./skills/constitution/files/development.md)
+- 通用治理： [management/general.md](./skills/constitution/management/general.md)
+- 开发治理： [management/development.md](./skills/constitution/management/development.md)
 - 插件流程资料： [docs/插件化机制-流程与踩坑.md](./docs/插件化机制-流程与踩坑.md)

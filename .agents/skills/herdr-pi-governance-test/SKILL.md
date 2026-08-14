@@ -24,6 +24,7 @@ description: 发布 superagents 治理规则并核验 GitHub 与 Pi 本地缓存
 - 测试 Agent 可以在用户提供的目录内部按题目创建源码和治理要求的子目录；这不等于本 skill 可以创建新的测试根目录。
 - 用于运行、打包抽取或审计的临时副本目录也必须由用户提供，或由用户明确授权使用系统临时目录；默认不创建任何额外测试/审计根目录。
 - 测试目录名、pane 标签和路径后缀只是操作者的辨认方式，不参与模型选择，也不是治理规则。模型必须由操作者在本轮明确指定并记录；未指定或无法确认时停止，不按目录名、pane 位置、旧名称或模型习惯猜测。
+- 本项目的 DeepSeek 默认变体为 Flash。用户明确指定 DeepSeek、但没有指定具体变体时，优先使用当前 Pi 模型列表中 DeepSeek 提供方的 Flash 型号；当前型号为 `deepseek/deepseek-v4-flash`。用户明确指定其他型号时以用户指定为准；Flash 型号不可用时停止并报告，不得自行降级到 Pro。
 
 在分割 pane 前只做只读核验，例如：
 
@@ -37,9 +38,10 @@ test "$test_root_top" != "$test_root_bottom"
 ## 开始前
 
 1. 确认当前目录是 `D:\superagents`（或该仓库的等价路径），读取：
-   - `skills/constitution/files/general.md`
-   - `skills/constitution/files/development.md`
+   - `skills/constitution/management/general.md`
+   - `skills/constitution/management/development.md`
    - `skills/constitution/SKILL.md`
+   - 测试参考材料治理时再读取 `skills/constitution/management/reference.md`。
    - 需要修改文档时再读取 `skills/constitution/modules/zh-cn-writing.md`。
 2. 先检查 `git status --short --branch` 和 `git diff`。保留用户已有改动；提交时只纳入本轮明确的治理规则或 skill 文件。
 3. 收集本轮输入：目标分支、两个明确的模型配置、thinking 等级、用户预先提供的两个独立项目根路径、两个唯一的 Agent 名称、最新治理规则来源，以及一份本轮从未用过的测试题。先按“测试目录边界”核验路径，再确认模型配置完整；模型不由目录后缀、pane 顺序或临时偏好推断。需要比较模型时，默认把同一份新题目派给两路；用户要求差异化测试时，分别准备两份新题目。

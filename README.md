@@ -19,7 +19,7 @@
 
 下面只列当前实际存在、对使用者有导航价值的直接目录；工具链例外保持在根目录，是因为各插件清单和 `package.json` 直接引用它们。
 
-- [docs/](./docs/)：插件机制和维护流程资料。
+- `docs/`：长期维护资料，包括 [插件化机制与踩坑](./docs/插件化机制-流程与踩坑.md) 和 [参考材料治理规范迭代复盘与拆分方法](./docs/参考材料治理规范-迭代复盘与拆分方法.md)。
 - [hooks/](./hooks/)：Claude Code 的 SessionStart hook。
 - [reference/](./reference/)：外部项目、分析和资料收集。
 - [scripts/](./scripts/)：安装、同步和缓存清理脚本。

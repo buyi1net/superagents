@@ -1,7 +1,7 @@
 {
   "name": "superagents",
   "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": { "name": "buyi1net" },
   "homepage": "https://github.com/buyi1net/superagents",
   "repository": "https://github.com/buyi1net/superagents",

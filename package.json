@@ -1,6 +1,6 @@
 {
   "name": "superagents",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
   "main": ".opencode/plugins/superagents.mjs",
   "type": "module",

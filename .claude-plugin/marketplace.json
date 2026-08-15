@@ -5,8 +5,8 @@
   "plugins": [
     {
       "name": "superagents",
-      "description": "跨 agent 规则与配套 skill 容器：开场注入规则总纲 constitution 并全程遵守",
-      "version": "0.2.0",
+      "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
+      "version": "0.2.1",
       "source": "./",
       "author": { "name": "buyi1net" }
     }

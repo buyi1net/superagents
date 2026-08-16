@@ -2,19 +2,19 @@
 /**
  * superagents 跨 agent 一键安装器（跨平台：Windows / macOS / Linux）
  *
- * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / Codex / OpenCode，并保证
- * 每家装完的 cache 都干净（不含别家清单、docs、.claude 这些杂物）。
+ * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / Codex / OpenCode。
  * Pi 不归这里管：Pi 有原生包机制，用 `pi install git:github.com/buyi1net/superagents`（README「分家手动」）。
- * github 仓库保持全量，干净靠两条路：
+ * 各家的安装策略：
  *   - Claude Code：marketplace add --sparse，装时只拉自己的目录
  *   - Codex：plugin add 会二次完整 clone，不能 sparse（partial clone 缺 blob 会失败），
- *            只能整仓装 + 装完 post-clean 删 cache 杂物
- *   - OpenCode：npm 式 git 依赖只能整仓，杂物留缓存但不加载
+ *            必须保留原生完整缓存，不能在安装后删除仓库文件
+ *   - OpenCode：先失效本插件的 Git 缓存，再调用原生 plugin 命令安装并注册
  *
  * 用法：
  *   node install.mjs                装三家
  *   node install.mjs --cc|--codex|--opencode   只装指定家（可组合）
  *   node install.mjs --uninstall    三家卸载（Pi 用 pi remove，不归这里）
+ *   node install.mjs --codex --uninstall       只卸载 Codex（其它目标同理）
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -32,7 +32,6 @@ const isWin = os.platform() === 'win32';
 const CC_SPARSE = ['.claude-plugin', 'hooks', 'skills'];
 // post-clean 白名单：各家 cache 只保留这些，其余（仓库杂物 + 别家清单）一律删——比黑名单稳，仓库以后加新根文件也不漏
 const CC_KEEP = ['.claude-plugin', 'hooks', 'skills', '.in_use'];   // .in_use 是 Claude Code 装插件的内部标记
-const CODEX_KEEP = ['.codex-plugin', 'skills'];
 
 const log = (m) => console.log(m);
 const sh = (cmd) => execSync(cmd, { stdio: 'pipe', encoding: 'utf8' });
@@ -40,7 +39,7 @@ const shLoud = (cmd) => { log('  $ ' + cmd); return execSync(cmd, { stdio: 'inhe
 const tryQuiet = (cmd) => { try { sh(cmd); return true; } catch { return false; } };
 const has = (bin) => { try { sh(isWin ? `where ${bin}` : `command -v ${bin}`); return true; } catch { return false; } };
 
-// 删目录（可传多个），不存在就跳过——plugin uninstall / marketplace remove 都不清 cache 实际文件，卸载后残留一份，靠它手动清
+// 删目录（可传多个），不存在就跳过。统一安装器会清理目标空目录或异常残留，不触碰其它插件。
 function rmDir(...dirs) {
   for (const d of dirs) { if (fs.existsSync(d)) fs.rmSync(d, { recursive: true, force: true }); }
 }
@@ -98,16 +97,20 @@ function installCC() {
 function installCodex() {
   log('\n=== Codex ===');
   if (!has('codex')) { log('  跳过：未找到 codex CLI'); return; }
-  tryQuiet(`codex plugin marketplace remove ${MARKET}`);            // 幂等
+  const cxBase = path.join(HOME, '.codex', 'plugins', 'cache');
+  tryQuiet(`codex plugin remove ${PLUGIN}@${MARKET}`);              // 先解除旧插件注册，避免重装继续命中旧 cache
+  tryQuiet(`codex plugin marketplace remove ${MARKET}`);            // 再移除旧 Marketplace
+  rmDir(path.join(cxBase, MARKET),                                 // Linux 实测 plugin remove 可能留下空的 Marketplace cache 父目录
+        path.join(HOME, '.codex', '.tmp', 'marketplaces', MARKET));
   shLoud(`codex plugin marketplace add ${REPO}`);                   // 整仓（不能 sparse）
   shLoud(`codex plugin add ${PLUGIN}@${MARKET}`);
-  const cxBase = path.join(HOME, '.codex', 'plugins', 'cache');
   const cache = findPluginCache(cxBase);
-  if (!cache) { log('  ✗ 没找到 Codex plugin cache'); return; }
-  const rm = keepOnly(cache, CODEX_KEEP);                           // 白名单清理：只留自己需要的
-  const pruned = pruneOldVersions(cxBase);                          // 删老版本目录，只留刚装的
+  if (!cache) throw new Error('没找到 Codex plugin cache');
+  const required = ['.git', '.codex-plugin', 'skills', 'package.json', 'README.md'];
+  const missing = required.filter(name => !fs.existsSync(path.join(cache, name)));
+  if (missing.length) throw new Error(`Codex plugin cache 不完整：${missing.join(', ')}`);
   cleanCodexHook();                                                 // 走 skill 引用，清掉之前配过的 hook
-  log(`  ✓ Codex 装好并清理（${rm.join(', ')}${pruned.length ? '；删老版本：' + pruned.join(', ') : ''}）；走 skill 引用：开场露 description、按需调用加载全文`);
+  log('  ✓ Codex 已完成干净重装；保留原生完整 cache，走 skill 引用：开场露 description、按需调用加载全文');
 }
 
 // Codex 走 skill 引用、不用 hook（exec 不触发 SessionStart、交互全靠模型自觉调）：
@@ -129,21 +132,12 @@ function cleanCodexHook() {
 // ---------- OpenCode ----------
 function installOpencode() {
   log('\n=== OpenCode ===');
-  const ocDir = path.join(HOME, '.config', 'opencode');
-  const ocJson = path.join(ocDir, 'opencode.json');
+  if (!has('opencode')) { log('  跳过：未找到 opencode CLI'); return; }
   const spec = `${PLUGIN}@git+${GIT_URL}`;
-  let cfg = {};
-  if (fs.existsSync(ocJson)) { try { cfg = JSON.parse(fs.readFileSync(ocJson, 'utf8')); } catch {} }
-  else if (!fs.existsSync(ocDir)) fs.mkdirSync(ocDir, { recursive: true });
-  cfg.plugin = Array.isArray(cfg.plugin) ? cfg.plugin : [];
-  if (!cfg.plugin.some(p => typeof p === 'string' && p.startsWith(`${PLUGIN}@git+`))) cfg.plugin.push(spec);
-  fs.writeFileSync(ocJson, JSON.stringify(cfg, null, 2));           // 保留原有配置（含 key）
-  log('  ✓ 已把 plugin 写进 opencode.json（保留你原有配置）');
-  // 更新场景：bun 把 git 依赖缓存钉在旧 commit，不删缓存包 opencode 只会用旧版。
-  // 删掉旧缓存包，opencode 下次运行会从 github 重新拉最新。
   const removed = rmOpencodeCache();
-  if (removed) log(`  ✓ 已清 opencode 旧缓存包（${removed}）；下次运行 opencode 会从 github 重拉最新，之后跑 node scripts/clean-opencode.mjs 清杂物`);
-  else log('  ⚠ OpenCode 首次运行时才拉包（整仓、带杂物）。用一次后跑清理：node scripts/clean-opencode.mjs');
+  if (removed) log(`  ✓ 已失效 OpenCode 旧缓存包（${removed}）`);
+  shLoud(`opencode plugin "${spec}" --global --force`);
+  log('  ✓ OpenCode 已通过原生 plugin 命令安装并写入全局配置');
 }
 
 // 删 opencode 缓存包（整个 superagents@git... 目录），让 opencode 下次运行从 github 重拉最新。
@@ -158,53 +152,79 @@ function rmOpencodeCache() {
 }
 
 // ---------- 卸载 ----------
-function uninstallAll() {
+function uninstallSelected(targets) {
   log('\n=== 卸载 ===');
-  if (has('claude')) {
+  if (targets.cc && has('claude')) {
     tryQuiet(`claude plugin uninstall ${PLUGIN}@${MARKET}`);
     tryQuiet(`claude plugin marketplace remove ${MARKET}`);
     rmDir(path.join(HOME, '.claude', 'plugins', 'cache', MARKET),
           path.join(HOME, '.claude', 'plugins', 'marketplaces', MARKET));   // uninstall/remove 不清实际文件，手动删残留
     log('  Claude Code 已卸');
   }
-  if (has('codex')) {
+  if (targets.codex && has('codex')) {
     tryQuiet(`codex plugin remove ${PLUGIN}@${MARKET}`);
     tryQuiet(`codex plugin marketplace remove ${MARKET}`);
     rmDir(path.join(HOME, '.codex', 'plugins', 'cache', MARKET),
           path.join(HOME, '.codex', '.tmp', 'marketplaces', MARKET));       // 同上
     log('  Codex 已卸');
   }
-  // Codex hooks.json 去掉 constitution 那条
-  const hooksJson = path.join(HOME, '.codex', 'hooks.json');
-  if (fs.existsSync(hooksJson)) {
-    try {
-      const cfg = JSON.parse(fs.readFileSync(hooksJson, 'utf8'));
-      if (cfg.hooks?.SessionStart) {
-        cfg.hooks.SessionStart = cfg.hooks.SessionStart.filter(e => !JSON.stringify(e).includes('constitution'));
-        fs.writeFileSync(hooksJson, JSON.stringify(cfg, null, 2));
-      }
-    } catch {}
+  if (targets.codex) {
+    // Codex hooks.json 去掉 constitution 那条
+    const hooksJson = path.join(HOME, '.codex', 'hooks.json');
+    if (fs.existsSync(hooksJson)) {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(hooksJson, 'utf8'));
+        if (cfg.hooks?.SessionStart) {
+          cfg.hooks.SessionStart = cfg.hooks.SessionStart.filter(e => !JSON.stringify(e).includes('constitution'));
+          fs.writeFileSync(hooksJson, JSON.stringify(cfg, null, 2));
+        }
+      } catch {}
+    }
   }
-  // opencode.json 去掉 spec
-  const ocJson = path.join(HOME, '.config', 'opencode', 'opencode.json');
-  if (fs.existsSync(ocJson)) {
-    try {
-      const cfg = JSON.parse(fs.readFileSync(ocJson, 'utf8'));
-      if (Array.isArray(cfg.plugin)) {
-        cfg.plugin = cfg.plugin.filter(p => !(typeof p === 'string' && p.startsWith(`${PLUGIN}@git+`)));
-        fs.writeFileSync(ocJson, JSON.stringify(cfg, null, 2));
-      }
-    } catch {}
+  if (targets.opencode) {
+    // opencode.json 去掉 spec
+    const ocJson = path.join(HOME, '.config', 'opencode', 'opencode.json');
+    if (fs.existsSync(ocJson)) {
+      try {
+        const cfg = JSON.parse(fs.readFileSync(ocJson, 'utf8'));
+        if (Array.isArray(cfg.plugin)) {
+          cfg.plugin = cfg.plugin.filter(p => !(typeof p === 'string' && p.startsWith(`${PLUGIN}@git+`)));
+          fs.writeFileSync(ocJson, JSON.stringify(cfg, null, 2));
+        }
+      } catch {}
+    }
+    log('  OpenCode 已从 opencode.json 移除');
   }
-  log('  OpenCode 已从 opencode.json 移除');
 }
 
 // ---------- main ----------
 const args = process.argv.slice(2);
-if (args.includes('--uninstall')) { uninstallAll(); log('\n完成。'); process.exit(0); }
 const all = !args.some(a => ['--cc', '--codex', '--opencode'].includes(a));
+const targets = {
+  cc: all || args.includes('--cc'),
+  codex: all || args.includes('--codex'),
+  opencode: all || args.includes('--opencode'),
+};
+if (args.includes('--uninstall')) {
+  uninstallSelected(targets);
+  log('\n完成。');
+  process.exit(0);
+}
+const failures = [];
+const runInstaller = (label, install) => {
+  try { install(); }
+  catch (error) {
+    failures.push(label);
+    log(`  ${label} 出错：${error.message}`);
+  }
+};
 log(`superagents 跨 agent 安装器  (平台: ${os.platform()})`);
-if (all || args.includes('--cc'))       { try { installCC(); }       catch (e) { log('  Claude Code 出错: ' + e.message); } }
-if (all || args.includes('--codex'))    { try { installCodex(); }    catch (e) { log('  Codex 出错: ' + e.message); } }
-if (all || args.includes('--opencode')) { try { installOpencode(); } catch (e) { log('  OpenCode 出错: ' + e.message); } }
-log('\n完成。三家里 Claude Code/Codex 装完 cache 已清干净，OpenCode 杂物在缓存但不加载。');
+if (targets.cc) runInstaller('Claude Code', installCC);
+if (targets.codex) runInstaller('Codex', installCodex);
+if (targets.opencode) runInstaller('OpenCode', installOpencode);
+if (failures.length) {
+  log(`\n安装失败：${failures.join('、')}`);
+  process.exitCode = 1;
+} else {
+  log('\n完成。Claude Code 使用精简 cache；Codex 保留原生完整 cache；OpenCode 使用原生 plugin 注册。');
+}

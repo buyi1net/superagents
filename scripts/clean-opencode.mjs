@@ -5,7 +5,7 @@
  * 为什么需要它：OpenCode 用 bun 按 git 依赖拉「整个仓库」到缓存，bun 默认又不跑
  * postinstall，所以杂物没法在拉包时清掉，只能「拉下来之后」补清。
  *
- * 本脚本按白名单清：OpenCode 实际只加载 package.json（main 指向）、
+ * 本脚本按白名单清：OpenCode 实际只加载 package.json（server export 指向）、
  * .opencode/plugins/superagents.mjs（插件入口）、skills/（总纲正文），其余（别家清单、
  * docs、.claude/ThirdParty 第三方 skill 等）一律删。
  *

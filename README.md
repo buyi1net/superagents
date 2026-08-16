@@ -11,7 +11,7 @@
 ## 前置条件
 
 - 已安装目标 Agent。
-- Codex、OpenCode、Pi 当前使用项目安装脚本，需要 Git Bash 和 Node.js。
+- OpenCode 需支持 `opencode plugin` 命令；运行更新脚本时还需要 Node.js。
 - Windows 上的 Claude Code 需要 Bash 执行会话 hook，标准安装的 Git for Windows 已包含所需环境。
 
 ## Claude Code
@@ -26,11 +26,11 @@ claude plugin install superagents@superagents-dz
 # 验证
 claude plugin list
 
-# 禁用
-claude plugin disable superagents@superagents-dz
-
 # 启用
 claude plugin enable superagents@superagents-dz
+
+# 禁用
+claude plugin disable superagents@superagents-dz
 
 # 更新
 claude plugin marketplace update superagents-dz
@@ -41,59 +41,52 @@ claude plugin uninstall superagents@superagents-dz
 claude plugin marketplace remove superagents-dz
 ```
 
-安装或更新后新建会话。插件列表中应显示已启用的 `superagents@superagents-dz`。
-
 ## Codex
 
-通过项目脚本安装 Marketplace 插件。Codex 原生发现并按需加载 skill，不使用 SessionStart hook。
+通过 Codex 内置的 Marketplace 和插件命令安装。Codex 原生发现并按需加载 skill，不使用 SessionStart hook。
 
 ```bash
 # 安装
-git clone https://github.com/buyi1net/superagents.git
-cd superagents
-node scripts/install.mjs --codex
+codex plugin marketplace add buyi1net/superagents
+codex plugin add superagents@superagents-dz
 
 # 验证
 codex plugin list
 
-# 更新，在 superagents 仓库目录执行
-git pull --ff-only
-node scripts/install.mjs --codex
+# 更新
+codex plugin marketplace upgrade superagents-dz
+codex plugin remove superagents@superagents-dz
+codex plugin add superagents@superagents-dz
 
 # 卸载
 codex plugin remove superagents@superagents-dz
 codex plugin marketplace remove superagents-dz
 ```
 
-安装或更新后新建会话。插件列表中应显示已启用的 `superagents@superagents-dz`。
-
 ## OpenCode
 
-通过项目脚本安装 Git 插件。插件注册 `skills.paths`，并向会话的第一条用户消息注入本插件。
+通过 OpenCode 原生插件命令安装。插件使用正式服务端入口注册 `skills.paths`，并向会话的第一条用户消息注入本插件。
 
 ```bash
 # 安装
-git clone https://github.com/buyi1net/superagents.git
-cd superagents
-node scripts/install.mjs --opencode
+opencode plugin "superagents@git+https://github.com/buyi1net/superagents.git" --global
 
 # 验证
 opencode debug skill
 
 # 更新，在 superagents 仓库目录执行
-git pull --ff-only
 node scripts/install.mjs --opencode
 
 # 卸载
-# 从 ~/.config/opencode/opencode.json 的 plugin 数组中删除：
+# 从 ~/.config/opencode/opencode.json 或 opencode.jsonc 的 plugin 数组中删除：
 # superagents@git+https://github.com/buyi1net/superagents.git
 ```
 
-安装、更新或卸载后重新启动 OpenCode。验证输出中应包含本仓提供的 skill。
+OpenCode 尚无插件更新和卸载命令。更新脚本会失效本插件的 Git 缓存后重新调用原生安装命令；安装、更新或卸载后重新启动 OpenCode，验证输出中应包含本仓提供的 skill。
 
 ## Pi Agent
 
-通过 Git 包安装。Pi 使用原生 skill 目录，并在会话开始和上下文压缩后注入本插件。
+通过 Pi 原生 Git 包机制安装。Pi 从包清单加载扩展和 skill，并在每次用户提交提示时注入本插件。
 
 ```bash
 # 安装
@@ -102,6 +95,9 @@ pi install git:github.com/buyi1net/superagents
 # 验证
 pi list
 
+# 启用或禁用包内资源
+pi config
+
 # 更新
 pi update git:github.com/buyi1net/superagents
 
@@ -109,7 +105,7 @@ pi update git:github.com/buyi1net/superagents
 pi remove git:github.com/buyi1net/superagents
 ```
 
-安装或更新后新建会话。包列表中应显示 `git:github.com/buyi1net/superagents`。
+安装或更新后重启 Pi，或在已打开的 Pi 中执行 `/reload`。`pi list` 应显示该包，`pi config` 中的扩展和 skill 应处于启用状态。
 
 ## 许可证
 

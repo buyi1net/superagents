@@ -1,17 +1,11 @@
 /**
- * superagents 的 Pi 扩展 —— 开场把 constitution 全局规则总纲注入每个 Pi 会话。
+ * superagents 的 Pi 扩展。
  *
- * 机制照 superpowers 的 .pi/extensions/superpowers.ts 移植,关键点:
- *   - resources_discover 注册 skills/ 为 Pi 原生 skills(Pi 无 Claude Code 的 Skill 工具,
- *     skill 靠原生机制 / 直接 read 加载,不需要兼容层)
- *   - context 事件每次 LLM 调用前触发:把 SKILL.md(剥 frontmatter)包装成
- *     <EXTREMELY_IMPORTANT> 引导,作为一条 user 消息插到消息列表开头(compaction summary 之后)
- *   - 用 user 消息而非 system:system 每轮重复膨胀 token,多 system 消息破坏部分模型
- *   - 生命周期标志:session_start / session_compact 置位(会话开始、压缩后都要重注入),
- *     agent_end 清位(agent run 结束停止注入,防止后续 turn 重复注入)
- *   - 注入前查 marker 去重;SKILL.md 模块级缓存,不每次读盘
+ * skills/ 由 package.json 的 pi.skills 清单注册。扩展在每次用户提交提示后、
+ * Agent 运行前把 constitution 追加到当前轮次的系统提示中。这样同一会话的
+ * 后续轮次和压缩后的轮次都会重新注入，不依赖跨轮次状态。
  *
- * 靠 import.meta 相对定位扩展内 SKILL.md,不写死绝对路径 —— 换机随包走。
+ * 通过 import.meta 相对定位 SKILL.md，不写死绝对路径，换机后仍随包生效。
  */
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -29,44 +23,13 @@ const constitutionSkillPath = resolve(skillsDir, "constitution", "SKILL.md");
 let cachedBootstrap: string | null | undefined;
 
 export default function superagentsPiExtension(pi: ExtensionAPI) {
-	let injectBootstrap = true;
-
-	pi.on("resources_discover", async () => ({
-		skillPaths: [skillsDir],
-	}));
-
-	pi.on("session_start", async () => {
-		injectBootstrap = true;
-	});
-
-	pi.on("session_compact", async () => {
-		injectBootstrap = true;
-	});
-
-	pi.on("agent_end", async () => {
-		injectBootstrap = false;
-	});
-
-	pi.on("context", async (event) => {
-		if (!injectBootstrap) return;
-		if (event.messages.some(messageContainsBootstrap)) return;
-
+	pi.on("before_agent_start", async (event) => {
 		const bootstrap = getBootstrapContent();
 		if (!bootstrap) return;
+		if (event.systemPrompt.includes(BOOTSTRAP_MARKER)) return;
 
-		const bootstrapMessage = {
-			role: "user" as const,
-			content: [{ type: "text" as const, text: bootstrap }],
-			timestamp: Date.now(),
-		};
-
-		const insertAt = firstNonCompactionSummaryIndex(event.messages);
 		return {
-			messages: [
-				...event.messages.slice(0, insertAt),
-				bootstrapMessage,
-				...event.messages.slice(insertAt),
-			],
+			systemPrompt: `${event.systemPrompt}\n\n${bootstrap}`,
 		};
 	});
 }
@@ -99,27 +62,4 @@ Pi 没有 Claude Code 的 Skill 工具,也不存在"调用 skill"这个动作:�
 function stripFrontmatter(content: string): string {
 	const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
 	return (match ? match[1] : content).trim();
-}
-
-function messageContainsBootstrap(message: unknown): boolean {
-	const content = (message as { content?: unknown }).content;
-	if (typeof content === "string") return content.includes(BOOTSTRAP_MARKER);
-	if (!Array.isArray(content)) return false;
-	return content.some((part) => {
-		return (
-			part &&
-			typeof part === "object" &&
-			(part as { type?: unknown }).type === "text" &&
-			typeof (part as { text?: unknown }).text === "string" &&
-			(part as { text: string }).text.includes(BOOTSTRAP_MARKER)
-		);
-	});
-}
-
-function firstNonCompactionSummaryIndex(messages: unknown[]): number {
-	let index = 0;
-	while ((messages[index] as { role?: unknown } | undefined)?.role === "compactionSummary") {
-		index += 1;
-	}
-	return index;
 }

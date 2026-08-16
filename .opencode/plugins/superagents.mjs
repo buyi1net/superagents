@@ -38,7 +38,7 @@ ${body}
   return _cache;
 };
 
-export const ConstitutionPlugin = async ({ client, directory }) => {
+const server = async () => {
   return {
     // 注册 skills.paths,让 OpenCode 发现插件内所有 skill(非 ~/.claude/skills 目录)
     config: async (config) => {
@@ -62,4 +62,9 @@ export const ConstitutionPlugin = async ({ client, directory }) => {
       firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
     }
   };
+};
+
+export default {
+  id: 'superagents',
+  server
 };

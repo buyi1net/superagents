@@ -8,13 +8,13 @@
   "license": "MIT",
   "keywords": ["rules", "constitution", "workflow"],
   "skills": "./skills/",
-  "hooks": {},
   "interface": {
     "displayName": "Superagents",
     "shortDescription": "跨 agent 全局规则总纲",
-    "longDescription": "开场把语言、交流、工作纪律、流程、开发规范的总纲注入上下文并全程遵守。Codex 的 hook 走全局 ~/.codex/hooks.json（plugin 只提供 skill）。",
+    "longDescription": "通过 Codex 原生 skill 机制提供全局规则、需求追问和工作交接能力。",
     "developerName": "buyi1net",
     "category": "Developer Tools",
-    "capabilities": ["Read"]
+    "capabilities": ["Read"],
+    "defaultPrompt": "使用 Superagents 提供的规则和 skill 完成当前任务。"
   }
 }

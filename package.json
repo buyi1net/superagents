@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
   "main": ".opencode/plugins/superagents.mjs",
+  "exports": {
+    ".": "./.opencode/plugins/superagents.mjs",
+    "./server": "./.opencode/plugins/superagents.mjs"
+  },
   "type": "module",
   "keywords": [
     "pi-package",

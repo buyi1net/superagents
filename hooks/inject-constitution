@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# 在 Claude Code 会话或子 Agent 启动时注入全局规则总纲。
+# 通过脚本自身位置定位插件内容，换机后无需修改绝对路径。
+
+set -euo pipefail
+
+EVENT_NAME="${1:-}"
+case "${EVENT_NAME}" in
+    SessionStart|SubagentStart) ;;
+    *)
+        printf 'inject-constitution: 不支持的 Hook 事件：%s\n' "${EVENT_NAME:-<空>}" >&2
+        exit 1
+        ;;
+esac
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SKILL_MD="${PLUGIN_ROOT}/skills/constitution/SKILL.md"
+
+if [[ ! -r "${SKILL_MD}" ]]; then
+    printf 'inject-constitution: 无法读取 %s\n' "${SKILL_MD}" >&2
+    exit 1
+fi
+
+content="$(<"${SKILL_MD}")"
+
+# 按 JSON 转义顺序处理规则正文，反斜杠必须最先转换。
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+escaped="$(escape_for_json "${content}")"
+ctx="<EXTREMELY_IMPORTANT>\n以下是你的全局规则总纲 constitution，本对话全程必须遵守；其中每处「详见 modules/X」都是强制读取，不是可选参考。\n\n${escaped}\n</EXTREMELY_IMPORTANT>"
+
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "%s",\n    "additionalContext": "%s"\n  }\n}\n' "${EVENT_NAME}" "${ctx}"

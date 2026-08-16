@@ -1,15 +1,4 @@
-# superagents
-
 面向 Claude Code、Codex、OpenCode 和 Pi 的跨 Agent 规则与 skill 工具包。
-
-## 支持范围
-
-| Agent | 安装方式 | 会话加载方式 | Skill 发现 |
-|---|---|---|---|
-| Claude Code | Marketplace 插件 | 在启动、清空上下文和压缩上下文时注入 `constitution` | 插件原生发现 |
-| Codex | Marketplace 插件 | 不使用 SessionStart hook，由 Codex 发现并按需加载 skill | 插件原生发现 |
-| OpenCode | Git 插件 | 向会话的第一条用户消息注入 `constitution` | 注册 `skills.paths` |
-| Pi | Git 包 | 在会话开始和上下文压缩后注入 `constitution` | 注册原生 skill 目录 |
 
 ## 工具列表
 
@@ -19,17 +8,15 @@
 | [`grill`](./skills/grill/SKILL.md) | 在开放式需求中逐层确认决策点和边界。 |
 | [`handoff`](./skills/handoff/SKILL.md) | 在切换 Agent 或主动交接时生成可继续执行的工作快照。 |
 
-## 使用说明
+## 前置条件
 
-通常只需把仓库地址 `https://github.com/buyi1net/superagents` 交给目标 Agent，并让它按照自己的章节操作。
-
-### 前置条件
-
-- 已安装目标 Agent 的 CLI。
+- 已安装目标 Agent。
 - Codex、OpenCode、Pi 当前使用项目安装脚本，需要 Git Bash 和 Node.js。
 - Windows 上的 Claude Code 需要 Bash 执行会话 hook，标准安装的 Git for Windows 已包含所需环境。
 
-### Claude Code
+## Claude Code
+
+通过 Marketplace 插件安装。Claude Code 原生发现 skill，并在会话启动、恢复、清空、压缩、分叉及子 Agent 启动时注入本插件。
 
 ```bash
 # 安装
@@ -56,7 +43,9 @@ claude plugin marketplace remove superagents-dz
 
 安装或更新后新建会话。插件列表中应显示已启用的 `superagents@superagents-dz`。
 
-### Codex
+## Codex
+
+通过项目脚本安装 Marketplace 插件。Codex 原生发现并按需加载 skill，不使用 SessionStart hook。
 
 ```bash
 # 安装
@@ -78,7 +67,9 @@ codex plugin marketplace remove superagents-dz
 
 安装或更新后新建会话。插件列表中应显示已启用的 `superagents@superagents-dz`。
 
-### OpenCode
+## OpenCode
+
+通过项目脚本安装 Git 插件。插件注册 `skills.paths`，并向会话的第一条用户消息注入本插件。
 
 ```bash
 # 安装
@@ -100,7 +91,9 @@ node scripts/install.mjs --opencode
 
 安装、更新或卸载后重新启动 OpenCode。验证输出中应包含本仓提供的 skill。
 
-### Pi
+## Pi Agent
+
+通过 Git 包安装。Pi 使用原生 skill 目录，并在会话开始和上下文压缩后注入本插件。
 
 ```bash
 # 安装

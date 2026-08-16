@@ -1,0 +1,7 @@
+manifest_version: 1
+name: superagents
+version: "0.0.1"
+description: 为 Hermes Agent 注册 superagents skill，并注入全局规则总纲。
+author: buyi1net
+provides_hooks:
+  - pre_llm_call

@@ -1,4 +1,4 @@
-面向 Claude Code、Codex、OpenCode 和 Pi 的跨 Agent 规则与 skill 工具包。
+面向 Claude Code、Codex、OpenCode、Pi 和 Hermes Agent 的跨 Agent 规则与 skill 工具包。
 
 ## 工具列表
 
@@ -83,6 +83,33 @@ node scripts/install.mjs --opencode
 ```
 
 OpenCode 尚无插件更新和卸载命令。更新脚本会失效本插件的 Git 缓存后重新调用原生安装命令；安装、更新或卸载后重新启动 OpenCode，验证输出中应包含本仓提供的 skill。
+
+## Hermes Agent
+
+通过 Hermes 原生插件命令安装。Hermes 从公开仓的 `.hermes-plugin/` 发现插件；插件把全部 skill 注册为 `superagents:<skill-name>`，并通过 `pre_llm_call` 向会话注入 constitution。压缩后的历史不再包含注入标记时会自动补回。
+
+```bash
+# 安装并启用
+hermes plugins install buyi1net/superagents --enable
+
+# 验证
+hermes plugins show superagents
+hermes plugins doctor superagents
+
+# 禁用或重新启用
+hermes plugins disable superagents
+hermes plugins enable superagents
+
+# 更新
+hermes plugins update superagents
+
+# 卸载
+hermes plugins remove superagents
+```
+
+安装、更新、启用或禁用后，重启正在运行的 Hermes CLI、Gateway 或 Desktop 会话。插件 skill 不进入 Hermes 的扁平 skill 索引，需要通过 `skill_view("superagents:grill")` 等 namespaced 名称加载。
+
+Hermes v0.20.2 扫描完整仓库时，可能把 `.claude-plugin/plugin.json` 和 `.codex-plugin/plugin.json` 当作 portable manifest 探测并打印两条 schema 警告；只要 `hermes plugins show superagents` 显示插件已启用，这两条警告不影响 `.hermes-plugin` 的加载。
 
 ## Pi Agent
 

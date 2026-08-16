@@ -17,16 +17,14 @@
 
 ## 目录地图
 
-下面只列当前实际存在、对使用者有导航价值的直接目录；工具链例外保持在根目录，是因为各插件清单和 `package.json` 直接引用它们。
+下面只列当前实际存在、对使用者有导航价值的一级目录；工具链接口保留在根目录，是因为各 Agent 会从固定位置读取清单或扩展入口。
 
-- `docs/`：长期维护资料，包括 [插件化机制与踩坑](./docs/插件化机制-流程与踩坑.md) 和 [参考材料治理规范迭代复盘与拆分方法](./docs/参考材料治理规范-迭代复盘与拆分方法.md)。
+- [docs/](./docs/README.md)：插件机制、项目管理制度复盘等长期项目文档。
 - [hooks/](./hooks/)：Claude Code 的 SessionStart hook。
-- [reference/](./reference/)：外部项目、分析和资料收集。
+- [reference/](./reference/README.md)：外部项目、研究分析和候选资料。
 - [scripts/](./scripts/)：安装、同步和缓存清理脚本。
-- [skills/](./skills/)：正式 skill 交付源稿，各 skill 的加载入口为其目录下的 `SKILL.md`。
-- [.agents/skills/](./.agents/skills/)：本仓库维护和治理测试专用的项目级 skill，不纳入正式插件交付。
-- [.agents/plugins/](./.agents/plugins/)：通用 marketplace 清单。
-- [.claude/](./.claude/)：本地 Claude Code 设置，不进入插件发布物。
+- [skills/](./skills/)：正式发布的 skill 源稿。
+- [.agents/](./.agents/)：本仓库维护专用的 marketplace 清单和治理测试 skill。
 - [.claude-plugin/](./.claude-plugin/)：Claude Code plugin 和 marketplace 清单。
 - [.codex-plugin/](./.codex-plugin/)：Codex plugin 清单。
 - [.opencode/](./.opencode/)：OpenCode 插件入口。
@@ -38,8 +36,11 @@
 - [CLAUDE.md](./CLAUDE.md)：Claude 路由入口。
 - [package.json](./package.json)：OpenCode 插件入口和 Pi 包声明。
 - [.gitignore](./.gitignore)：版本库忽略规则。
+- [.gitattributes](./.gitattributes)：跨平台文本属性。
 
 各家的清单目录必须保留在仓库根目录；安装时各家先读取自己的清单，再按清单去 [hooks/](./hooks/) 和 [skills/](./skills/) 取内容。
+
+本项目的工具链目录规模小、职责固定，其用途统一由本节说明，不再为 `hooks/`、`scripts/` 和各 Agent 的清单、插件、扩展子目录分别维护重复 README。只有目录发展出需要人类独立阅读的多项内容时，才由用户或更具体规范决定是否建立单独说明入口。
 
 ## 安装
 

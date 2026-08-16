@@ -1,5 +1,0 @@
-项目：mattpocock/skills
-用途：第三方 Agent skill 研究资料
-地址：https://github.com/mattpocock/skills
-记录日期：2026-08-06
-核验状态：地址已记录；具体版本以分析报告中的历史核验记录为准。

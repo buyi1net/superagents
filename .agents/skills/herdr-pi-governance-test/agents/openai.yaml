@@ -1,4 +1,4 @@
 interface:
   display_name: "Herdr Pi 治理回归"
-  short_description: "发布规则、核验 Pi 缓存并启动双会话治理回归测试"
-  default_prompt: "使用 $herdr-pi-governance-test 核验用户提供的测试目录，关闭上一轮测试 pane，按操作者指定的模型发布并同步规则，然后在 Herdr 右侧上下启动两路全新 Pi 治理测试。"
+  short_description: "发布并同步规则，保护测试题并核验双路 Pi 真实产物"
+  default_prompt: "使用 $herdr-pi-governance-test 发布并同步本轮治理规则，先让我确认不泄露答案的真实测试题，再启动两路全新 Pi 会话并核验送达与磁盘结果。"

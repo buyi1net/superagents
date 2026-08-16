@@ -3,7 +3,7 @@
  * sync.mjs —— 本机开发用:把本仓库的 superagents 插件正稿一键刷到本机已装的 Claude Code + OpenCode。
  *
  * 只刷这两家、不含 codex:codex 认 github,会话启动时会从 github 重拉、盖掉本地刷进去的改动
- * (实测,详见 .claude/docs/插件化机制-流程与踩坑.md),对它本地 sync 是无用功。codex 要更新走
+ * (实测,详见 docs/插件机制/插件化机制-流程与踩坑.md),对它本地 sync 是无用功。codex 要更新走
  * install.mjs(从 github 拉)。
  *
  * 跟 install.mjs 的分工:

@@ -1,38 +1,41 @@
 # 项目入口
 
-## 项目边界
+## 项目概览
 
-本仓库是跨 Agent 的规则与 skill 插件。项目说明、安装方式和当前实际目录地图见 [README.md](./README.md)。
+`superagents` 是面向多个 Agent 的规则与 skill 插件仓库，负责维护正式规则源稿、各 Agent 的注入入口以及安装同步工具。项目用途、安装方式和完整目录说明见 [README.md](./README.md)。
 
-## 项目管理制度目标
+项目管理制度正在从开发文件治理拆分为按实际工作场景组织的通用制度；`management/general.md` 和 `management/development.md` 仍是过渡文件，新场景规范只在真实工作暴露出独立治理问题后建立。
 
-`skills/constitution/management/` 正在从开发场景下的文件治理规则，重构为面向各种项目的项目管理制度。它不以写代码为默认前提，也适用于办公、科研、设计、运营、教育、咨询和其他项目场景。
+## 项目地图
 
-- 项目管理制度按实际工作场景拆分。每份场景规范独立说明适用范围、职责边界、内容归属、操作流程、生命周期和验收证据，上层规则只负责路由，不复制场景细节。
-- `management/general.md` 与 `management/development.md` 是拆分期间的过渡文件，不是最终架构。不要继续把新场景规则集中写入这两个文件，也不要默认它们会永久保留；已有职责应随场景规范成熟逐步迁移。
-- 新场景规范必须针对真实工作中已经出现的失控问题建立。先明确要解决的问题，再决定文件、名称和层级；不得为了制度看起来完整而预建空规范或机械拆分。
-- `management/reference.md` 是首个独立场景规范，负责各种项目中的外部参考材料，不局限于代码、源码或开发依赖。其他场景规范也应按同样方向摆脱开发项目的默认语境。
+| 内容 | 用途 | 说明入口 | 内容入口 |
+|---|---|---|---|
+| 正式 skill 源稿 | 保存对外发布的规则与 skill | [项目说明](./README.md#这是什么) | [skills/](./skills/) |
+| 项目文档 | 保存插件机制和项目管理复盘等长期说明 | [文档索引](./docs/README.md) | [docs/](./docs/) |
+| 参考资料 | 保存外部项目、历史分析和专题资料 | [参考索引](./reference/README.md) | [reference/](./reference/) |
+| 项目级 Agent 工具 | 保存本仓库维护和治理测试专用能力 | [Herdr 测试说明](./docs/治理测试/Herdr操作说明.md) | [.agents/skills/](./.agents/skills/) |
+| 插件与维护工具链 | 保存各 Agent 的清单、注入入口及安装同步脚本 | [工具链说明](./README.md#四家的注入方式) | [package.json](./package.json) · [hooks/](./hooks/) · [scripts/](./scripts/) |
 
-## Agent 路由
+## 项目维护规则
 
-1. 处理本仓库的任何文件前，先读通用文件治理 [management/general.md](./skills/constitution/management/general.md)。
-2. 处理参考材料的收录、归类、记录、拉取、更新、删除或参考目录维护时，读 [management/reference.md](./skills/constitution/management/reference.md)。
-3. 创建、修改、构建、测试或交付代码时，继续读过渡期开发场景治理 [management/development.md](./skills/constitution/management/development.md)。
-4. 修改代码前读 [development/coding.md](./skills/constitution/development/coding.md)。
-5. 修改 README、文档、注释或提交说明前读 [modules/zh-cn-writing.md](./skills/constitution/modules/zh-cn-writing.md)。
-6. 研究插件注入、安装和同步流程时，读 [插件化机制说明](./docs/插件化机制-流程与踩坑.md)。
+### 任务路由
 
-## 变更边界
+| 当前任务 | 继续读取 |
+|---|---|
+| 处理本仓库中的文件 | [通用文件治理](./skills/constitution/management/general.md) |
+| 创建或维护 `AGENTS.md`、`CLAUDE.md` | [Agent 入口治理](./skills/constitution/management/agent-entry.md) |
+| 收录、分类、拉取、更新、废弃或整理参考资料 | [参考材料治理](./skills/constitution/management/reference.md)、[参考目录入口](./reference/AGENTS.md) |
+| 创建、修改、构建、测试或交付代码 | [开发场景治理](./skills/constitution/management/development.md)、[编码规范](./skills/constitution/development/coding.md) |
+| 修改 README、文档、注释或提交说明 | [中文写作规范](./skills/constitution/modules/zh-cn-writing.md) |
+| 研究插件注入、安装或同步流程 | [插件化机制说明](./docs/插件机制/插件化机制-流程与踩坑.md) |
+| 设计、修改、复核或准备发送治理测试题 | [治理测试出题原则](./docs/治理测试/出题原则.md) |
+| 使用 Herdr 启动、派发、等待或审计治理测试 | [Herdr 治理测试操作说明](./docs/治理测试/Herdr操作说明.md) |
 
-- 根目录下的插件清单、`package.json`、`hooks/`、`skills/`、`.opencode/` 和 `.pi/` 属于工具链接口；移动或重命名前必须同时检查清单、脚本和 README 中的路径。
-- `skills/` 是正式 skill 源稿，`skills/constitution/` 是全局规则唯一来源；不要在各 Agent 的独立目录复制另一份正稿。
-- `.agents/skills/` 只保存本仓库维护和治理测试所需的项目级 skill，不属于正式插件发布源；修改它时仍须更新 `.agents/README.md` 的地图。
-- 安装、同步和缓存清理会改写项目根目录之外的 Agent 配置或缓存；只有用户明确要求时执行，并先阅读 [README.md](./README.md) 中对应的影响说明。
+### 长期边界
 
-## 维护入口
-
-- 人类使用和安装： [README.md](./README.md)
-- 通用治理： [management/general.md](./skills/constitution/management/general.md)
-- 参考材料治理： [management/reference.md](./skills/constitution/management/reference.md)
-- 开发治理（过渡）： [management/development.md](./skills/constitution/management/development.md)
-- 插件流程资料： [docs/插件化机制-流程与踩坑.md](./docs/插件化机制-流程与踩坑.md)
+- `skills/` 是正式 skill 源稿，`skills/constitution/` 是全局规则唯一来源；不得在各 Agent 的独立目录复制另一份正稿。
+- 项目管理制度按实际场景拆分，上层入口只负责路由，不复制场景细节；不得继续向过渡文件集中堆放新场景规则，也不得预建没有实际问题支撑的空规范。
+- 根目录插件清单、`package.json`、`hooks/`、`skills/`、`.opencode/` 和 `.pi/` 属于工具链接口；移动或重命名前必须同步检查清单、脚本和 README 中的路径。
+- `.agents/skills/` 只保存本仓库维护和治理测试所需的项目级 skill，不属于正式插件发布源。
+- `hooks/`、`scripts/` 和各 Agent 的清单、插件、扩展目录规模小且职责固定，由根 [README.md](./README.md) 统一说明；不得机械补建重复 README。
+- 安装、同步和缓存清理会改写项目根目录之外的 Agent 配置或缓存；只有用户明确要求时才能执行。

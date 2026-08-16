@@ -1,4 +1,6 @@
-面向 Claude Code、Codex、OpenCode 和 Pi 的跨 Agent 规则与 skill 工具包。
+# SuperAgents
+
+SuperAgents 是一款面向 Claude Code、Codex、OpenCode、Pi、Hermes Agent 的治理规范，属于每个 Agent 必不可缺的一环，推荐所有人安装该插件包。
 
 ## 工具列表
 
@@ -106,6 +108,33 @@ pi remove git:github.com/buyi1net/superagents
 ```
 
 安装或更新后重启 Pi，或在已打开的 Pi 中执行 `/reload`。`pi list` 应显示该包，`pi config` 中的扩展和 skill 应处于启用状态。
+
+## Hermes Agent
+
+通过 Hermes 原生插件命令安装。Hermes 从公开仓的 `.hermes-plugin/` 发现插件；插件把全部 skill 注册为 `superagents:<skill-name>`，并通过 `pre_llm_call` 向会话注入 constitution。压缩后的历史不再包含注入标记时会自动补回。
+
+```bash
+# 安装并启用
+hermes plugins install buyi1net/superagents --enable
+
+# 验证
+hermes plugins show superagents
+hermes plugins doctor superagents
+
+# 禁用或重新启用
+hermes plugins disable superagents
+hermes plugins enable superagents
+
+# 更新
+hermes plugins update superagents
+
+# 卸载
+hermes plugins remove superagents
+```
+
+安装、更新、启用或禁用后，重启正在运行的 Hermes CLI、Gateway 或 Desktop 会话。插件 skill 不进入 Hermes 的扁平 skill 索引，需要通过 `skill_view("superagents:grill")` 等 namespaced 名称加载。
+
+Hermes v0.20.2 扫描完整仓库时，可能把 `.claude-plugin/plugin.json` 和 `.codex-plugin/plugin.json` 当作 portable manifest 探测并打印两条 schema 警告；只要 `hermes plugins show superagents` 显示插件已启用，这两条警告不影响 `.hermes-plugin` 的加载。
 
 ## 许可证
 

@@ -1,5 +1,5 @@
 /**
- * superagents 的 Pi 扩展。
+ * superextensions 的 Pi 扩展。
  *
  * skills/ 由 package.json 的 pi.skills 清单注册。扩展在每次用户提交提示后、
  * Agent 运行前把 constitution 追加到当前轮次的系统提示中。这样同一会话的
@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const EXTREMELY_IMPORTANT_MARKER = "<EXTREMELY_IMPORTANT>";
-const BOOTSTRAP_MARKER = "superagents:constitution bootstrap for pi";
+const BOOTSTRAP_MARKER = "superextensions:constitution bootstrap for pi";
 
 const extensionDir = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(extensionDir, "../..");
@@ -22,7 +22,7 @@ const constitutionSkillPath = resolve(skillsDir, "constitution", "SKILL.md");
 
 let cachedBootstrap: string | null | undefined;
 
-export default function superagentsPiExtension(pi: ExtensionAPI) {
+export default function superextensionsPiExtension(pi: ExtensionAPI) {
 	pi.on("before_agent_start", async (event) => {
 		const bootstrap = getBootstrapContent();
 		if (!bootstrap) return;

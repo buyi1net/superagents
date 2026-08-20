@@ -1,10 +1,10 @@
 {
-  "name": "superagents-dz",
+  "name": "superextensions",
   "description": "buyi1net 的跨 agent 规则与工作流市场",
   "owner": { "name": "buyi1net" },
   "plugins": [
     {
-      "name": "superagents",
+      "name": "superextensions",
       "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
       "version": "0.0.1",
       "source": "./",

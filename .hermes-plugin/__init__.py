@@ -1,4 +1,4 @@
-"""superagents 的 Hermes Agent 插件入口。"""
+"""superextensions 的 Hermes Agent 插件入口。"""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from typing import Any
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = PLUGIN_ROOT / "skills"
 CONSTITUTION_NAME = "constitution"
-SKILL_NAMESPACE = "superagents"
-BOOTSTRAP_MARKER_PREFIX = "superagents:constitution bootstrap for hermes"
+SKILL_NAMESPACE = "superextensions"
+BOOTSTRAP_MARKER_PREFIX = "superextensions:constitution bootstrap for hermes"
 _FRONTMATTER_RE = re.compile(
     r"\A---\r?\n(?P<header>[\s\S]*?)\r?\n---(?:\r?\n|\Z)(?P<body>[\s\S]*)\Z"
 )
@@ -46,7 +46,7 @@ def register(ctx: Any) -> None:
 
 def _discover_skills() -> list[tuple[str, Path, dict[str, str], str]]:
     if not SKILLS_DIR.is_dir():
-        raise RuntimeError(f"superagents plugin: 找不到 skill 目录：{SKILLS_DIR}")
+        raise RuntimeError(f"superextensions plugin: 找不到 skill 目录：{SKILLS_DIR}")
 
     skills: list[tuple[str, Path, dict[str, str], str]] = []
     for skill_dir in sorted(SKILLS_DIR.iterdir(), key=lambda path: path.name):
@@ -57,12 +57,12 @@ def _discover_skills() -> list[tuple[str, Path, dict[str, str], str]]:
         name = frontmatter.get("name", skill_dir.name)
         if name != skill_dir.name:
             raise RuntimeError(
-                f"superagents plugin: skill 名称与目录不一致：{skill_path} 声明 {name}"
+                f"superextensions plugin: skill 名称与目录不一致：{skill_path} 声明 {name}"
             )
         skills.append((name, skill_path, frontmatter, body))
 
     if not any(name == CONSTITUTION_NAME for name, *_rest in skills):
-        raise RuntimeError("superagents plugin: 缺少 constitution/SKILL.md")
+        raise RuntimeError("superextensions plugin: 缺少 constitution/SKILL.md")
     return skills
 
 

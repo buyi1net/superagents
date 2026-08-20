@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * superagents 跨 agent 一键安装器（跨平台：Windows / macOS / Linux）
+ * superextensions 跨 agent 一键安装器（跨平台：Windows / macOS / Linux）
  *
- * 把 superagents plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / Codex / OpenCode。
- * Pi 不归这里管：Pi 有原生包机制，用 `pi install git:github.com/buyi1net/superagents`（README「分家手动」）。
+ * 把 superextensions plugin（规则总纲 constitution + 配套 skill）装到 Claude Code / Codex / OpenCode。
+ * Pi 不归这里管：Pi 有原生包机制，用 `pi install git:github.com/buyi1net/superextensions`（README「分家手动」）。
  * 各家的安装策略：
  *   - Claude Code：marketplace add --sparse，装时只拉自己的目录
  *   - Codex：plugin add 会二次完整 clone，不能 sparse（partial clone 缺 blob 会失败），
@@ -21,10 +21,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const REPO = 'buyi1net/superagents';
-const GIT_URL = 'https://github.com/buyi1net/superagents.git';
-const MARKET = 'superagents-dz';
-const PLUGIN = 'superagents';
+const REPO = 'buyi1net/superextensions';
+const GIT_URL = 'https://github.com/buyi1net/superextensions.git';
+const MARKET = 'superextensions';
+const PLUGIN = 'superextensions';
 const HOME = os.homedir();
 const isWin = os.platform() === 'win32';
 
@@ -140,7 +140,7 @@ function installOpencode() {
   log('  ✓ OpenCode 已通过原生 plugin 命令安装并写入全局配置');
 }
 
-// 删 opencode 缓存包（整个 superagents@git... 目录），让 opencode 下次运行从 github 重拉最新。
+// 删 opencode 缓存包（整个 superextensions@git... 目录），让 opencode 下次运行从 github 重拉最新。
 // 更新时必需：bun 缓存钉版本，不删旧包就一直用旧 commit。
 function rmOpencodeCache() {
   const base = path.join(HOME, '.cache', 'opencode', 'packages');
@@ -218,7 +218,7 @@ const runInstaller = (label, install) => {
     log(`  ${label} 出错：${error.message}`);
   }
 };
-log(`superagents 跨 agent 安装器  (平台: ${os.platform()})`);
+log(`superextensions 跨 agent 安装器  (平台: ${os.platform()})`);
 if (targets.cc) runInstaller('Claude Code', installCC);
 if (targets.codex) runInstaller('Codex', installCodex);
 if (targets.opencode) runInstaller('OpenCode', installOpencode);

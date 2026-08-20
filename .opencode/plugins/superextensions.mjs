@@ -1,5 +1,5 @@
 /**
- * superagents bootstrap plugin for OpenCode
+ * superextensions bootstrap plugin for OpenCode
  *
  * 开场把 constitution 全局规则总纲注入每个会话的第一条 user 消息。
  * 改自 superpowers .opencode/plugins/superpowers.js。
@@ -65,6 +65,6 @@ const server = async () => {
 };
 
 export default {
-  id: 'superagents',
+  id: 'superextensions',
   server
 };

@@ -1,20 +1,20 @@
 {
-  "name": "superagents",
+  "name": "superextensions",
   "version": "0.0.1",
   "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
   "author": { "name": "buyi1net" },
-  "homepage": "https://github.com/buyi1net/superagents",
-  "repository": "https://github.com/buyi1net/superagents",
+  "homepage": "https://github.com/buyi1net/superextensions",
+  "repository": "https://github.com/buyi1net/superextensions",
   "license": "MIT",
   "keywords": ["rules", "constitution", "workflow"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Superagents",
+    "displayName": "SuperExtensions",
     "shortDescription": "跨 agent 全局规则总纲",
     "longDescription": "通过 Codex 原生 skill 机制提供全局规则、需求追问和工作交接能力。",
     "developerName": "buyi1net",
     "category": "Developer Tools",
     "capabilities": ["Read"],
-    "defaultPrompt": "使用 Superagents 提供的规则和 skill 完成当前任务。"
+    "defaultPrompt": "使用 SuperExtensions 提供的规则和 skill 完成当前任务。"
   }
 }

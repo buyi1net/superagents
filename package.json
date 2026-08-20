@@ -1,11 +1,11 @@
 {
-  "name": "superagents",
+  "name": "superextensions",
   "version": "0.0.1",
   "description": "Agent全局规则总纲，任何会话、任何任务开始前都必须加载并全程遵守。",
-  "main": ".opencode/plugins/superagents.mjs",
+  "main": ".opencode/plugins/superextensions.mjs",
   "exports": {
-    ".": "./.opencode/plugins/superagents.mjs",
-    "./server": "./.opencode/plugins/superagents.mjs"
+    ".": "./.opencode/plugins/superextensions.mjs",
+    "./server": "./.opencode/plugins/superextensions.mjs"
   },
   "type": "module",
   "keywords": [
@@ -15,11 +15,11 @@
     "rules"
   ],
   "private": true,
-  "homepage": "https://github.com/buyi1net/superagents",
-  "repository": "https://github.com/buyi1net/superagents",
+  "homepage": "https://github.com/buyi1net/superextensions",
+  "repository": "https://github.com/buyi1net/superextensions",
   "pi": {
     "extensions": [
-      "./.pi/extensions/superagents.ts"
+      "./.pi/extensions/superextensions.ts"
     ],
     "skills": [
       "./skills"

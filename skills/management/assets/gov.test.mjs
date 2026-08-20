@@ -13,7 +13,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const GOV = path.join(HERE, 'gov.mjs');
 const WS = path.join(HERE, '.selftest');
 const SRC = path.join(HERE, '.selftest-src');
-const run = (args, cwd) => spawnSync(process.execPath, ['gov.mjs', ...args], { cwd, encoding: 'utf8' });
+const run = (args, cwd) => spawnSync(process.execPath, ['.gov/gov.mjs', ...args], { cwd, encoding: 'utf8' });
 const runInit = (args, cwd) => spawnSync(process.execPath, [GOV, ...args], { cwd, encoding: 'utf8' });
 const w = (p, t) => fs.writeFileSync(path.join(WS, p), t, 'utf8');
 const r = (p) => fs.readFileSync(path.join(WS, p), 'utf8');
@@ -49,7 +49,9 @@ test('init 后 check 全绿', () => {
   const c = run(['check'], WS);
   assert.equal(c.status, 0, c.stdout);
   assert.match(c.stdout, /治理一致/);
-  assert.ok(fs.existsSync(path.join(WS, 'gov.mjs')), 'init 应把 gov.mjs 复制进项目');
+  assert.ok(fs.existsSync(path.join(WS, '.gov/gov.mjs')), 'init 应把 gov.mjs 种进 .gov/');
+  assert.ok(fs.existsSync(path.join(WS, '.gov/manifest.json')), 'manifest 应在 .gov/ 下');
+  assert.ok(!fs.existsSync(path.join(WS, 'gov.mjs')) && !fs.existsSync(path.join(WS, 'manifest.json')), '根目录不应有治理文件');
   assert.match(r('CLAUDE.md'), /AGENTS\.md/);
 });
 
@@ -75,7 +77,7 @@ test('add-reference 全链路：克隆、登记、忽略、生成、check 绿', 
   const p = run(['add-reference', src, '--category', '同类项目', '--note', '方案输入'], WS);
   assert.equal(p.status, 0, p.stdout + p.stderr);
   assert.ok(fs.existsSync(path.join(WS, 'reference/同类项目/srcrepo/.git')), '应完成克隆');
-  const m = JSON.parse(r('manifest.json'));
+  const m = JSON.parse(r('.gov/manifest.json'));
   const it = m.reference.items[0];
   assert.equal(it.license, 'MIT');
   assert.match(it.snapshot, /^[0-9a-f]{40}$/);
@@ -100,9 +102,9 @@ test('TODO 字段与磁盘未登记参考项都会亮红灯', () => {
   freshInit();
   const src = makeSrcRepo();
   run(['add-reference', src], WS);
-  const m = JSON.parse(r('manifest.json'));
+  const m = JSON.parse(r('.gov/manifest.json'));
   m.reference.items[0].source = 'TODO';
-  w('manifest.json', JSON.stringify(m, null, 2));
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
   assert.match(run(['check'], WS).stdout, /字段未填：source/);
   fs.mkdirSync(path.join(WS, 'reference/未分类/野项'), { recursive: true });
   assert.match(run(['check'], WS).stdout, /野项/);
@@ -114,12 +116,51 @@ test('docs 未索引文档亮红灯，登记后转绿', () => {
   w('docs/方案.md', '# 方案\n正文\n');
   const out = run(['check'], WS).stdout;
   assert.match(out, /顶层目录未声明：docs/, out);
-  const m = JSON.parse(r('manifest.json'));
+  const m = JSON.parse(r('.gov/manifest.json'));
   m.directories.push({ path: 'docs', role: 'docs' });
-  w('manifest.json', JSON.stringify(m, null, 2));
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
   assert.match(run(['check'], WS).stdout, /未索引的文档：docs\/方案\.md/);
   m.docs.items.push({ file: 'docs/方案.md', title: '方案', note: '' });
-  w('manifest.json', JSON.stringify(m, null, 2));
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
   run(['sync'], WS);
   assert.equal(run(['check'], WS).status, 0, run(['check'], WS).stdout);
+});
+
+test('根目录散落文件亮红灯，登记后转绿', () => {
+  freshInit();
+  w('stray-backup.json', '{}');
+  const out = run(['check'], WS).stdout;
+  assert.match(out, /根目录散落文件：stray-backup\.json/, out);
+  const m = JSON.parse(r('.gov/manifest.json'));
+  m.project.allowedRootFiles = ['stray-backup.json'];
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
+  assert.equal(run(['check'], WS).status, 0, run(['check'], WS).stdout);
+});
+
+test('docs 混入非文档文件亮红灯（数据/备份/代码不进 docs）', () => {
+  freshInit();
+  fs.mkdirSync(path.join(WS, 'docs'), { recursive: true });
+  w('docs/备份书签.json', '[]');
+  w('docs/插图.png', 'png');
+  w('docs/说明.txt', '纯文本');
+  const m = JSON.parse(r('.gov/manifest.json'));
+  m.directories.push({ path: 'docs', role: 'docs' });
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
+  const out = run(['check'], WS).stdout;
+  assert.match(out, /非文档文件：docs\/备份书签\.json/, out);
+  assert.doesNotMatch(out, /插图\.png|说明\.txt/, '文档与插图不应误报');
+});
+
+test('git 环境下未提交内容出提醒但不挡验收', () => {
+  freshInit();
+  execFileSync('git', ['-c', 'safe.directory=*', 'init', '-q', WS], { stdio: 'ignore' });
+  fs.mkdirSync(path.join(WS, 'scripts'), { recursive: true });
+  w('scripts/tool.mjs', '// 新脚本\n');
+  const m = JSON.parse(r('.gov/manifest.json'));
+  m.directories.push({ path: 'scripts', role: 'scripts' });
+  w('.gov/manifest.json', JSON.stringify(m, null, 2));
+  run(['sync'], WS);
+  const c = run(['check'], WS);
+  assert.equal(c.status, 0, 'warn 不影响退出码');
+  assert.match(c.stdout, /未提交的新内容：scripts\//, c.stdout);
 });

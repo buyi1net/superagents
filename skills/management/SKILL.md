@@ -21,24 +21,24 @@ description: 项目治理工具集：新项目建立治理（init）、既有项
 
 | 场景 | 动作 |
 |---|---|
-| 新项目、空目录形成长期成果 | `node <skill>/assets/gov.mjs init [项目名]`（在项目根运行；脚本会把自己复制进项目） |
+| 新项目、空目录形成长期成果 | `node <skill>/assets/gov.mjs init [项目名]`（在项目根运行；治理文件落在项目内 `.gov/` 隐藏目录） |
 | 既有项目首次接入治理 | 项目根运行 `node <skill>/assets/gov.mjs adopt`，补齐 TODO 字段后消化 check 红灯 |
-| 登记外部参考材料 | `node gov.mjs add-reference <git-url> [--category 分类] [--note 用途]`：克隆、固定快照、登记、生成说明是一个原子动作 |
-| 日常维护任何已治理项目 | 执行项目内规则 + `node gov.mjs check`；不需要读本 skill 正文 |
+| 登记外部参考材料 | `node .gov/gov.mjs add-reference <git-url> [--category 分类] [--note 用途]`：克隆、固定快照、登记、生成说明是一个原子动作 |
+| 日常维护任何已治理项目 | 执行项目内规则 + `node .gov/gov.mjs check`；不需要读本 skill 正文 |
 | 治理审计 / 接手陌生项目 | 跑 check，红灯清单就是现状报告 |
-| 完成任何任务前 | `node gov.mjs check` 全绿才算完成 |
+| 完成任何任务前 | `node .gov/gov.mjs check` 全绿才算完成 |
 
 ## gov 命令速查
 
 ```
-node gov.mjs init [项目名]     初始化：manifest + AGENTS.md + README.md + CLAUDE.md + gov.mjs
-node gov.mjs adopt             扫描既有项目生成 manifest 草稿（未知字段标 TODO）
-node gov.mjs add-reference <url> [--category --name --snapshot --note]
-node gov.mjs sync              从 manifest 重新生成索引段和参考说明
-node gov.mjs check             校验三方一致；退出码非 0 = 有欠账
+node .gov/gov.mjs init [项目名]     初始化：.gov/（manifest + gov.mjs）+ AGENTS.md + README.md + CLAUDE.md
+node .gov/gov.mjs adopt             扫描既有项目生成 manifest 草稿（未知字段标 TODO）
+node .gov/gov.mjs add-reference <url> [--category --name --snapshot --note]
+node .gov/gov.mjs sync              从 manifest 重新生成索引段和参考说明
+node .gov/gov.mjs check             校验三方一致；退出码非 0 = 有欠账
 ```
 
-README 索引段、参考说明由 sync 从 manifest 生成（`<!-- gov:...:start/end -->` 标记内），不手工维护、不平行抄写；修订元数据改 manifest，散文写标记外。字段说明与 hook 接线见 [assets/README.md](./assets/README.md)。
+治理状态活在 `.gov/`（manifest.json + gov.mjs，同 `.git/` 一样是隐藏基础设施，不污染根目录），不活在会话记忆里。README 索引段、参考说明由 sync 从 manifest 生成（`<!-- gov:...:start/end -->` 标记内），不手工维护、不平行抄写；修订元数据改 manifest，散文写标记外。字段说明与 hook 接线见 [assets/README.md](./assets/README.md)。
 
 ## 硬红线
 

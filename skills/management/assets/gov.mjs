@@ -25,19 +25,30 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const GOV_VERSION = 1;
-const MANIFEST = 'manifest.json';
-const SELF = 'gov.mjs';
+const GOV_DIR = '.gov';
+const MANIFEST = '.gov/manifest.json';
+const SELF = '.gov/gov.mjs';
 
-const ROLES = ['reference', 'docs', 'source', 'scripts', 'build', 'temp', 'design', 'tests', 'archive', 'custom'];
+const ROLES = ['reference', 'docs', 'source', 'scripts', 'build', 'temp', 'design', 'tests', 'archive', 'data', 'custom'];
 // 顶层目录免声明白名单：隐藏目录与依赖目录
 const TOP_EXEMPT = (name) => name.startsWith('.') || name === 'node_modules';
+// 根目录合法文件：治理入口 + 常见工程清单；其余根目录散落文件一律报错，
+// 项目自有根文件在 manifest.project.allowedRootFiles 里显式登记
+const ROOT_FILES = new Set([
+  'AGENTS.md', 'CLAUDE.md', 'README.md',
+  '.gitignore', '.gitattributes', '.editorconfig', '.npmrc', '.env.example',
+  'package.json', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock',
+  'LICENSE', 'CHANGELOG.md', 'tsconfig.json', 'Cargo.toml', 'pyproject.toml', 'setup.py',
+]);
+// docs 角色目录允许的内容类型：文档与插图；数据、备份、代码进 docs 一律报错
+const DOC_EXTS = new Set(['.md', '.txt', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.pdf']);
 // 生成段标记：sync 只重写标记之间的内容，标记外的人类散文不动
 const MARK = (key) => ({ start: `<!-- gov:${key}:start -->`, end: `<!-- gov:${key}:end -->` });
 
 const ROLE_LABEL = {
   reference: '外部参考', docs: '项目文档', source: '源码', scripts: '脚本',
   build: '最终交付', temp: '临时区', design: '设计材料', tests: '项目测试',
-  archive: '归档', custom: '自定义',
+  archive: '归档', data: '源数据与备份', custom: '自定义',
 };
 
 // ---------- 基础工具 ----------
@@ -50,7 +61,7 @@ const abs = (p) => path.join(root(), toPosix(p));
 const exists = (p) => fs.existsSync(abs(p));
 const isDir = (p) => { try { return fs.statSync(abs(p)).isDirectory(); } catch { return false; } };
 const read = (p) => { try { return fs.readFileSync(abs(p), 'utf8'); } catch { return null; } };
-const write = (p, text) => fs.writeFileSync(abs(p), text, 'utf8');
+const write = (p, text) => { fs.mkdirSync(path.dirname(abs(p)), { recursive: true }); fs.writeFileSync(abs(p), text, 'utf8'); };
 const today = () => new Date().toISOString().slice(0, 10);
 
 function loadManifest() {
@@ -66,6 +77,7 @@ function loadManifest() {
   if (!m.docs || !Array.isArray(m.docs.items)) m.docs = { items: [] };
   if (!Array.isArray(m.builds)) m.builds = [];
   if (!m.project) m.project = { name: '', summary: '' };
+  if (!Array.isArray(m.project.allowedRootFiles)) m.project.allowedRootFiles = [];
   return m;
 }
 
@@ -180,9 +192,9 @@ const relLink = (target, fromFile) => toPosix(path.relative(path.dirname(abs(fro
 
 const TPL_AGENTS = (name) => `# ${name} Agent 入口
 
-- 治理状态由 \`${MANIFEST}\` 描述，\`node ${SELF} check\` 机器校验：开工先跑 check，红灯项就是当次欠账，修到全绿才算完成。
-- 新增目录职责、参考材料、文档或交付物时，先登记进 \`${MANIFEST}\`（参考材料用 \`node ${SELF} add-reference\`），再跑 \`node ${SELF} sync\` 刷新索引。
-- 目录职责以 manifest.directories 的 role 为准；粒度判断（何时建目录、何时升级局部入口）见生成本项目的管理 skill 的 principles 说明。
+- 治理状态由 \`.gov/manifest.json\` 描述，\`node .gov/gov.mjs check\` 机器校验：开工先跑 check，红灯项就是当次欠账，修到全绿才算完成。
+- 新增目录职责、参考材料、文档或交付物时，先登记进 \`.gov/manifest.json\`（参考材料用 \`node .gov/gov.mjs add-reference\`），再跑 \`node .gov/gov.mjs sync\` 刷新索引。
+- 目录职责以 .gov/manifest.json 的 role 为准；粒度判断（何时建目录、何时升级局部入口）见生成本项目的管理 skill 的 principles 说明。
 
 ## 硬红线
 
@@ -208,6 +220,7 @@ function seedSelf() {
   const selfSrc = fileURLToPath(import.meta.url);
   const selfDst = abs(SELF);
   if (path.resolve(selfSrc) !== path.resolve(selfDst)) {
+    fs.mkdirSync(path.dirname(selfDst), { recursive: true });
     fs.copyFileSync(selfSrc, selfDst);
   }
 }
@@ -229,8 +242,8 @@ function cmdInit(args) {
   if (!read('CLAUDE.md')) write('CLAUDE.md', TPL_CLAUDE);
   // 把 gov.mjs 自身复制进项目，使未加载管理 skill 的 Agent 也能独立校验
   seedSelf();
-  ok(`项目 ${name} 治理已初始化：${MANIFEST} + AGENTS.md + README.md + CLAUDE.md + ${SELF}`);
-  console.log('下一步：创建目录后在 manifest.directories 登记；参考材料用 add-reference；收工前必跑 check。');
+  ok(`项目 ${name} 治理已初始化：${GOV_DIR}/（manifest.json + gov.mjs）+ AGENTS.md + README.md + CLAUDE.md`);
+  console.log('下一步：创建目录后在 .gov/manifest.json 登记；参考材料用 add-reference；收工前必跑 check。');
 }
 
 // ---------- 命令：adopt ----------
@@ -330,13 +343,17 @@ function adoptItemsIn(m, relDir, cat) {
 }
 
 function walkMd(relDir, fn) {
+  walkAll(relDir, (rel) => { if (rel.endsWith('.md')) fn(rel); });
+}
+
+function walkAll(relDir, fn) {
   const stack = [relDir];
   while (stack.length) {
     const dir = stack.pop();
     for (const name of fs.readdirSync(abs(dir))) {
       const rel = toPosix(dir + '/' + name);
       if (isDir(rel)) stack.push(rel);
-      else if (name.endsWith('.md')) fn(rel);
+      else fn(rel);
     }
   }
 }
@@ -452,6 +469,10 @@ function cmdCheck() {
     fail('CLAUDE.md 含有转发之外的内容', 'CLAUDE.md 只保留指向 AGENTS.md 的转发，正文写进 AGENTS.md');
   }
   if (!m.project.name) fail('manifest.project.name 为空', '填写项目名');
+  // 旧布局迁移：治理文件不得在根目录污染人类视野
+  if (exists('manifest.json') || exists('gov.mjs')) {
+    fail('根目录存在旧版治理文件（manifest.json / gov.mjs）', '迁移到 .gov/：mkdir .gov 后 git mv manifest.json gov.mjs .gov/，并更新 AGENTS.md 里的命令路径');
+  }
   if (/TODO/.test(m.project.summary || '')) warn('project.summary 标有 TODO', '补一句话用途');
 
   // 2. 声明目录 ↔ 磁盘
@@ -468,6 +489,12 @@ function cmdCheck() {
       if (!isDir(name) || TOP_EXEMPT(name) || claimed.has(name)) continue;
       fail(`顶层目录未声明：${name}/`, `在 manifest.directories 登记（adopt 可猜角色），或删除该目录`);
     }
+  }
+  // 根目录散落文件：只允许治理入口、常见工程清单和 allowedRootFiles 里的显式登记
+  for (const name of fs.readdirSync(root())) {
+    if (isDir(name)) continue;
+    if (ROOT_FILES.has(name) || m.project.allowedRootFiles.includes(name)) continue;
+    fail(`根目录散落文件：${name}`, `归入对应职责目录，或登记进 manifest.project.allowedRootFiles`);
   }
 
   // 3. 参考材料
@@ -524,6 +551,13 @@ function cmdCheck() {
     };
     // 一律扫磁盘：未登记的散落文档即使未被 git 跟踪也要暴露，不能依赖版本控制状态
     walkMd(docsDir, each);
+    // 内容类型约束：docs 只放文档与插图；数据、备份、代码混入 docs 直接报错
+    walkAll(docsDir, (f) => {
+      const ext = path.posix.extname(f).toLowerCase();
+      if (!DOC_EXTS.has(ext)) {
+        fail(`docs/ 下有非文档文件：${f}`, `数据/备份/代码归入对应职责目录（${ext} 不是文档类型）`);
+      }
+    });
     if (!sectionFresh(ROLE_README.docs, 'docs-index', genDocsIndexBody(m))) {
       // docs/README.md 不在声明目录下时的宽容处理：仅当文件存在才校验
       if (exists(ROLE_README.docs)) fail(`docs 索引不是最新：${ROLE_README.docs}`, 'node gov.mjs sync');
@@ -551,6 +585,16 @@ function cmdCheck() {
       if (!['AGENTS.md', 'CLAUDE.md', 'README.md'].includes(base) && !/\/README\.md$/.test(f)) {
         warn(`temp/ 下有被版本控制的主体内容：${f}`, '临时主体应忽略或转正（移入正式目录并登记）');
       }
+    }
+  }
+
+  // 6.5 干完活未提交：untracked 非忽略文件提醒（提交节奏留给用户，但债务必须可见）
+  if (gr) {
+    const out = git(['status', '--porcelain']);
+    for (const line of (out || '').split(/\r?\n/)) {
+      if (!line.startsWith('??')) continue;
+      const f = line.slice(2).trim().replace(/"/g, '');
+      warn(`未提交的新内容：${f}`, '干完活应提交入库；临时物补进 .gitignore');
     }
   }
 

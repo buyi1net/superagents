@@ -28,7 +28,8 @@ test "${HERDR_ENV:-}" = 1 && echo IN_HERDR || echo NOT_IN_HERDR
 
 ### 布局
 
-- 默认从当前 pane 向右分割 1-2 个辅助 pane,用户留在左侧主会话;用户当次另有布局要求时听用户的。
+- 默认在自己所在的 workspace 和 tab 内，从自己所在 pane 向右分割 1-2 个 pane 用作项目辅助。
+- 如无用户明确授权，不得新建 workspace 或 tab 来放辅助 pane。
 - 分割时默认用 `--cwd` 指定目标项目根(项目需要切换到其它目录工作的时候听用户的),用 `--no-focus` 保持用户焦点。
 - 只在任务真正需要时创建 pane,不预建空 pane;`herdr pane split` 的方向只用 `right` 或 `down`,不连续盲目分割凑布局。
 

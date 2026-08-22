@@ -28,8 +28,7 @@ test "${HERDR_ENV:-}" = 1 && echo IN_HERDR || echo NOT_IN_HERDR
 
 ### 布局
 
-- 默认在自己所在的 workspace 和 tab 内，从自己所在 pane 向右分割 1-2 个 pane 用作项目辅助。
-- 如无用户明确授权，不得新建 workspace 或 tab 来放辅助 pane。
+- 默认在自己所在的 workspace 和 tab 内，从自己所在 pane 向右分出辅助区：一个辅助 pane 就直接向右分割；两个时先向右分割第一个，再对右侧 pane 向下分割第二个，辅助区成上下两格，自己留在左侧。当然，如无用户明确授权，不得新建 workspace 或 tab 来放辅助 pane。
 - 分割时默认用 `--cwd` 指定目标项目根(项目需要切换到其它目录工作的时候听用户的),用 `--no-focus` 保持用户焦点。
 - 只在任务真正需要时创建 pane,不预建空 pane;`herdr pane split` 的方向只用 `right` 或 `down`,不连续盲目分割凑布局。
 
@@ -37,7 +36,7 @@ test "${HERDR_ENV:-}" = 1 && echo IN_HERDR || echo NOT_IN_HERDR
 
 用四步流程;Windows 下不得使用已知不可靠的 `herdr agent start`,也不得用 `intercom` 创建新会话(`intercom` 只用于已有会话之间通信):
 
-1. 分割:`herdr pane split --current --direction right --cwd <项目根> --no-focus`。
+1. 分割:一个辅助 pane 用 `herdr pane split --current --direction right --cwd <项目根> --no-focus`;要两个时对右侧 pane 再执行 `herdr pane split --pane <右侧-pane-id> --direction down --cwd <项目根> --no-focus`，得到右侧上下两格。
 2. 启动:`herdr pane run <pane-id> '<启动命令>'` 手动启动全新 Agent 进程。
 3. 命名:`herdr pane rename <pane-id> <本轮唯一名称>`,名称用于后续派活和读结果,不含会误导归类的信息。
 4. 派活:等 Herdr 识别出可交互 Agent 后,按"派活与等待"送达任务。

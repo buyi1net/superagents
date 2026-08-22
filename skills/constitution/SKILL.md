@@ -235,4 +235,8 @@ description: Agent全局规则总纲，任何会话、任何任务开始前都�
 
 ### 网络连接
 
-触发条件:遇到全球网络访问不可达时,阅读《网络代理》 `modules/network.md`。
+触发条件:遇到全球网络访问不可达时,阅读《网络代理》 `modules/network.md`再动手。
+
+### Herdr 协作
+
+触发条件:用户提到 Herdr,或 `HERDR_ENV=1`,或需要启动、调度、等待另一个 Agent CLI 会话时,先读《Herdr 协作》 `modules/herdr.md` 再动手。

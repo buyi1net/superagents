@@ -5,14 +5,14 @@
 ## 运行
 
 ```
-node .gov/gov.mjs init [项目名]        # 新项目初始化
-node .gov/gov.mjs adopt                # 既有项目接入，生成 manifest 草稿
-node .gov/gov.mjs add-reference <url> [--category 分类] [--name 名称] [--snapshot 快照] [--note 用途]
-node .gov/gov.mjs sync                 # 从 manifest 重新生成索引段与参考说明
-node .gov/gov.mjs check                # 一致性校验，红灯即欠账
+node .agents/gov/gov.mjs init [项目名]        # 新项目初始化
+node .agents/gov/gov.mjs adopt                # 既有项目接入，生成 manifest 草稿
+node .agents/gov/gov.mjs add-reference <url> [--category 分类] [--name 名称] [--snapshot 快照] [--note 用途]
+node .agents/gov/gov.mjs sync                 # 从 manifest 重新生成索引段与参考说明
+node .agents/gov/gov.mjs check                # 一致性校验，红灯即欠账
 ```
 
-init / adopt 把 gov.mjs 种进项目 `.gov/` 隐藏目录（同 `.git/` 惯例），manifest.json 也在 `.gov/` 下；根目录只留 AGENTS.md / CLAUDE.md / README.md 三个入口。旧布局（根目录 manifest.json / gov.mjs）会被 check 拦下并给出迁移指引。
+init / adopt 把 gov.mjs 种进项目 `.agents/gov/`，manifest.json 同住。一级目录准入规则：一级目录只放需要人和 AI 共同治理的内容；agent 专用工具（gov、记忆、项目级 skill）一律住 `.agents/`。旧布局（根目录或 `.gov/` 下的治理文件）会被 check 拦下并给出迁移指引。
 
 自检：`node --test gov.test.mjs`（在 assets 目录运行，夹具自动建删）。
 
@@ -60,6 +60,6 @@ Claude Code（`.claude/settings.json` 节选，SessionStart 时把欠账摆到�
 - check 的输出行 = 欠账工单：一行一个问题 + `→ 修复:` 指引，agent 可直接照单执行；
 - 三类「人类看着乱」的盲区有专项检查（iBrowser 首战教训）：根目录散落文件（白名单外一律 fail）、docs 内容类型（只允许文档与插图，数据/备份/代码 fail）、git untracked 非忽略内容（warn，提交节奏留给人但债务必须可见）；
 - docs 一律扫磁盘而非 git 索引：未登记的散落文件即使未被版本控制跟踪也要暴露（这正是旧体系漏掉的盲区）；
-- 根目录治理文件藏进 `.gov/`（iBrowser 二战教训：gov.mjs/manifest.json 出现在根目录是人类视野污染）；备份/快照归 data 角色而非 temp 或 docs；
+- 一级目录准入规则（用户拍板）：一级目录 = 人机共同治理的领地；agent 专用工具（gov、记忆、项目级 skill）住 `.agents/`，永不进一级。备份/快照归 data 角色而非 temp 或 docs；
 - 生成文件一律 UTF-8 + LF，避免 Windows CRLF 漂移；
 - 涉及 git 的检查（.gitignore 排除、temp 入库提醒）在无 git 环境自动降级跳过。

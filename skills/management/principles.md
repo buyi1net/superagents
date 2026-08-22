@@ -11,6 +11,7 @@
 
 ## 粒度原则（防过度执行）
 
+- **一级目录准入规则**：只有需要人和 AI 共同治理的目录才进一级（docs、source、scripts、data 等）；agent 专用的工具、记忆、项目级 skill 统一住 `.agents/`（治理工具在 `.agents/gov/`），同 `.git/` 一样对人类不可见。`AGENTS.md`/`CLAUDE.md`/`README.md` 三个入口文件除外：它们是各家 CLI 只认根位置的标准入口，人类也编辑。
 - 空目录零治理：没有内容就没有入口文件，manifest 也先不登记；
 - 少量内容只记 manifest：目录职责一行 entry 即可，不建局部 AGENTS.md；
 - 目录满足以下任一条件才升级局部入口（AGENTS.md）：条目多到 README 表格失去导航价值；有独立操作流程且 check 规则覆盖不了；多个会话反复在此目录犯同类错误；

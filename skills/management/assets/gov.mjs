@@ -25,9 +25,9 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const GOV_VERSION = 1;
-const GOV_DIR = '.gov';
-const MANIFEST = '.gov/manifest.json';
-const SELF = '.gov/gov.mjs';
+const GOV_DIR = '.agents/gov';
+const MANIFEST = '.agents/gov/manifest.json';
+const SELF = '.agents/gov/gov.mjs';
 
 const ROLES = ['reference', 'docs', 'source', 'scripts', 'build', 'temp', 'design', 'tests', 'archive', 'data', 'custom'];
 // 顶层目录免声明白名单：隐藏目录与依赖目录
@@ -192,9 +192,9 @@ const relLink = (target, fromFile) => toPosix(path.relative(path.dirname(abs(fro
 
 const TPL_AGENTS = (name) => `# ${name} Agent 入口
 
-- 治理状态由 \`.gov/manifest.json\` 描述，\`node .gov/gov.mjs check\` 机器校验：开工先跑 check，红灯项就是当次欠账，修到全绿才算完成。
-- 新增目录职责、参考材料、文档或交付物时，先登记进 \`.gov/manifest.json\`（参考材料用 \`node .gov/gov.mjs add-reference\`），再跑 \`node .gov/gov.mjs sync\` 刷新索引。
-- 目录职责以 .gov/manifest.json 的 role 为准；粒度判断（何时建目录、何时升级局部入口）见生成本项目的管理 skill 的 principles 说明。
+- 治理状态由 \`.agents/gov/manifest.json\` 描述，\`node .agents/gov/gov.mjs check\` 机器校验：开工先跑 check，红灯项就是当次欠账，修到全绿才算完成。
+- 新增目录职责、参考材料、文档或交付物时，先登记进 \`.agents/gov/manifest.json\`（参考材料用 \`node .agents/gov/gov.mjs add-reference\`），再跑 \`node .agents/gov/gov.mjs sync\` 刷新索引。
+- 一级目录是人的领地：agent 专用工具统一住 \`.agents/\`（同 \`.git/\` 一样隐藏）。目录职责以 manifest 的 role 为准；粒度判断见生成本项目的管理 skill 的 principles 说明。
 
 ## 硬红线
 
@@ -243,7 +243,7 @@ function cmdInit(args) {
   // 把 gov.mjs 自身复制进项目，使未加载管理 skill 的 Agent 也能独立校验
   seedSelf();
   ok(`项目 ${name} 治理已初始化：${GOV_DIR}/（manifest.json + gov.mjs）+ AGENTS.md + README.md + CLAUDE.md`);
-  console.log('下一步：创建目录后在 .gov/manifest.json 登记；参考材料用 add-reference；收工前必跑 check。');
+  console.log(`下一步：创建目录后在 ${MANIFEST} 登记；参考材料用 add-reference；收工前必跑 check。`);
 }
 
 // ---------- 命令：adopt ----------
@@ -469,9 +469,13 @@ function cmdCheck() {
     fail('CLAUDE.md 含有转发之外的内容', 'CLAUDE.md 只保留指向 AGENTS.md 的转发，正文写进 AGENTS.md');
   }
   if (!m.project.name) fail('manifest.project.name 为空', '填写项目名');
-  // 旧布局迁移：治理文件不得在根目录污染人类视野
-  if (exists('manifest.json') || exists('gov.mjs')) {
-    fail('根目录存在旧版治理文件（manifest.json / gov.mjs）', '迁移到 .gov/：mkdir .gov 后 git mv manifest.json gov.mjs .gov/，并更新 AGENTS.md 里的命令路径');
+  // 旧布局迁移：治理文件不得出现在人的领地（根目录），也不留在 .gov（已废弃的旧家）
+  const legacy = [];
+  for (const p of ['manifest.json', 'gov.mjs', '.gov/manifest.json', '.gov/gov.mjs']) {
+    if (exists(p)) legacy.push(p);
+  }
+  if (legacy.length) {
+    fail(`存在旧版治理文件：${legacy.join('、')}`, `迁移到 ${GOV_DIR}/：mkdir .agents\gov 后 git mv，并更新 AGENTS.md 与 hook 里的命令路径`);
   }
   if (/TODO/.test(m.project.summary || '')) warn('project.summary 标有 TODO', '补一句话用途');
 
